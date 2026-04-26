@@ -12,16 +12,16 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
         primary: {
-          50: '#fdf8f6',
-          100: '#f2e8e5',
-          200: '#eaddd7',
-          300: '#e0cec7',
-          400: '#d2bab0',
-          500: '#a37a6b', // Brand primary
-          600: '#8c685a',
-          700: '#705247',
-          800: '#523c34',
-          900: '#382823',
+          50: '#fcf8f7',
+          100: '#f8efed',
+          200: '#f1ded9',
+          300: '#e5c3bb',
+          400: '#d5a195',
+          500: '#b87c6f', // Rosa palo / Nude principal
+          600: '#9d6357',
+          700: '#7f4e45',
+          800: '#643e37',
+          900: '#4d302a',
         }
       },
     },

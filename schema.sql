@@ -68,5 +68,45 @@ CREATE POLICY "Productos visibles para todos" ON productos FOR SELECT USING (tru
 -- Permitir que cualquiera pueda insertar citas (sin necesidad de estar autenticado)
 ALTER TABLE citas ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Cualquiera puede agendar citas" ON citas FOR INSERT WITH CHECK (true);
--- Opcional: Solo lectura para citas si es necesario (generalmente no queremos que cualquiera vea todas las citas)
--- CREATE POLICY "Lectura de citas restringida" ON citas FOR SELECT USING (true); -- Descomentar bajo tu propio riesgo
+
+-- ==========================================
+31: -- CONTEXTO: PERSONALIZACIÓN Y CONTENIDO
+32: -- ==========================================
+
+-- Tabla para configuración del sitio (Logo, Colores, etc.)
+CREATE TABLE IF NOT EXISTS configuracion (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  clave TEXT UNIQUE NOT NULL,
+  valor TEXT,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Tabla para tips y rutinas
+CREATE TABLE IF NOT EXISTS tips_rutinas (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  titulo TEXT NOT NULL,
+  contenido TEXT NOT NULL,
+  tipo TEXT CHECK (tipo IN ('tip', 'rutina')),
+  imagen_url TEXT,
+  video_url TEXT, -- URL de video corto (Reel style)
+  visible_pwa BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- RLS para configuración y tips
+ALTER TABLE configuracion ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Configuracion visible para todos" ON configuracion FOR SELECT USING (true);
+CREATE POLICY "Permitir insertar configuracion" ON configuracion FOR INSERT WITH CHECK (true);
+CREATE POLICY "Permitir actualizar configuracion" ON configuracion FOR UPDATE USING (true);
+
+ALTER TABLE tips_rutinas ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Tips visibles para todos" ON tips_rutinas FOR SELECT USING (true);
+CREATE POLICY "Permitir insertar tips" ON tips_rutinas FOR INSERT WITH CHECK (true);
+CREATE POLICY "Permitir actualizar tips" ON tips_rutinas FOR UPDATE USING (true);
+
+-- RLS para Pacientes y Evaluaciones
+ALTER TABLE pacientes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir todo en pacientes" ON pacientes FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE evaluaciones_clinicas ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir todo en evaluaciones" ON evaluaciones_clinicas FOR ALL USING (true) WITH CHECK (true);

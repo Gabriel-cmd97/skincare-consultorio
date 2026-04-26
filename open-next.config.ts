@@ -24,5 +24,4 @@ const config: OpenNextConfig = {
   },
 };
 
-
 export default config;

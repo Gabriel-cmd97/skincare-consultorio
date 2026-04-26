@@ -27,6 +27,39 @@ CREATE TABLE IF NOT EXISTS citas (
   CONSTRAINT cita_unica UNIQUE (fecha_hora) -- Evita que dos citas tengan exactamente la misma fecha y hora
 );
 
+-- ==========================================
+-- CONTEXTO: GESTIÓN CLÍNICA (CORE DOMAIN)
+-- ==========================================
+
+-- Tabla de Pacientes (Entity Root)
+CREATE TABLE IF NOT EXISTS pacientes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  nombre TEXT NOT NULL,
+  apellidos TEXT NOT NULL,
+  fecha_nacimiento DATE NOT NULL,
+  telefono TEXT,
+  email TEXT,
+  alergias JSONB DEFAULT '[]'::jsonb, -- Almacena array de strings
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Tabla de Evaluaciones Dermatofuncionales (Aggregate Root)
+CREATE TABLE IF NOT EXISTS evaluaciones_clinicas (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  paciente_id UUID NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
+  fecha TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  -- Estado Piel (Value Object mapeado a columnas)
+  piel_hidratacion TEXT CHECK (piel_hidratacion IN ('baja', 'media', 'alta')),
+  piel_elasticidad TEXT CHECK (piel_elasticidad IN ('baja', 'media', 'alta')),
+  piel_fototipo TEXT CHECK (piel_fototipo IN ('I', 'II', 'III', 'IV', 'V', 'VI')),
+  piel_sensibilidad BOOLEAN DEFAULT false,
+  -- Detalles
+  objetivo_principal TEXT CHECK (objetivo_principal IN ('Estético', 'Funcional', 'Mixto')),
+  hallazgos JSONB DEFAULT '[]'::jsonb, -- Array de HallazgoClinico
+  fotos_url JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Políticas de seguridad (RLS - Row Level Security)
 -- Permitir que cualquiera pueda leer los productos
 ALTER TABLE productos ENABLE ROW LEVEL SECURITY;

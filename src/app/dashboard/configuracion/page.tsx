@@ -141,7 +141,7 @@ export default function ConfigPage() {
           <div className="text-xs text-primary-600 space-y-2 bg-primary-50 p-5 rounded-2xl border border-primary-100">
             <p className="font-bold text-primary-900">¿Cómo obtener tu clave gratuita para recibir notificaciones por WhatsApp?</p>
             <ol className="list-decimal pl-4 space-y-1">
-              <li>Añade el número <b className="text-primary-800">+34 699 14 00 48</b> a los contactos de tu celular.</li>
+              <li>Añade el número <b className="text-primary-800">+34 694 242 562</b> a los contactos de tu celular.</li>
               <li>Envíale un mensaje por WhatsApp a ese número que diga exactamente: <code className="bg-white px-1 py-0.5 rounded text-primary-900 font-bold border border-primary-100">I allow callmebot to send me messages</code></li>
               <li>El bot te responderá inmediatamente con tu <b>API Key</b> (una clave de números). Pégala aquí arriba.</li>
             </ol>

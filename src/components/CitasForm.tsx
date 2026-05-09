@@ -6,7 +6,6 @@ import { crearNotificacionHibrida } from "@/actions/notificaciones";
 
 export default function CitasForm() {
   const [nombre, setNombre] = useState("");
-  const [email, setEmail] = useState("");
   const [telefono, setTelefono] = useState("");
   const [fecha, setFecha] = useState("");
   const [hora, setHora] = useState("");
@@ -22,28 +21,14 @@ export default function CitasForm() {
     try {
       const fechaHora = new Date(`${fecha}T${hora}:00`).toISOString();
 
-      // Verificar si ya existe una cita en esa fecha y hora
-      const { data: citasExistentes, error: checkError } = await supabase
-        .from("citas")
-        .select("id")
-        .eq("fecha_hora", fechaHora);
-
-      if (checkError) throw checkError;
-
-      if (citasExistentes && citasExistentes.length > 0) {
-        setMessage({
-          type: "error",
-          text: "El horario seleccionado ya no está disponible. Por favor elige otro.",
-        });
-        setLoading(false);
-        return;
-      }
+      // Omitimos la verificación manual de duplicados para evitar errores de permisos (RLS).
+      // La base de datos se encargará de esto mediante el UNIQUE constraint definido en schema.sql.
 
       // Insertar la cita
       const { error: insertError } = await supabase.from("citas").insert([
         {
           paciente_nombre: nombre,
-          paciente_email: email,
+          paciente_email: '', // Campo ahora opcional internamente
           paciente_telefono: telefono,
           fecha_hora: fechaHora,
           tipo_tratamiento: tratamiento,
@@ -75,7 +60,6 @@ export default function CitasForm() {
         });
 
         setNombre("");
-        setEmail("");
         setTelefono("");
         setFecha("");
         setHora("");
@@ -118,28 +102,16 @@ export default function CitasForm() {
           />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
-              placeholder="maria@ejemplo.com"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono (opcional)</label>
-            <input
-              type="tel"
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
-              placeholder="555-0123"
-            />
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono de Contacto</label>
+          <input
+            type="tel"
+            required
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+            placeholder="Ej. 52 722 123 4567"
+          />
         </div>
 
         <div>

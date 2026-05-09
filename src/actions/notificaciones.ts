@@ -46,17 +46,22 @@ export async function crearNotificacionHibrida({
 
     // 3. Enviar mensaje por WhatsApp si están configurados los datos
     if (telefono && apiKey) {
-      // CallMeBot requiere el teléfono con el signo + al principio, y luego el código de país.
-      // El usuario guarda "527221234567" (ejemplo), entonces añadimos el "+"
-      const telefonoFormateado = telefono.startsWith('+') ? telefono : `+${telefono}`;
+      // CallMeBot requiere el teléfono con el signo + al principio
+      const telefonoLimpio = telefono.replace(/\D/g, '');
+      const telefonoFormateado = `+${telefonoLimpio}`;
       
       const textoMensaje = `*${titulo}*\n${mensaje}`;
       const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(telefonoFormateado)}&text=${encodeURIComponent(textoMensaje)}&apikey=${apiKey}`;
 
       try {
-        const response = await fetch(url, { method: 'GET' });
+        console.log('Llamando a CallMeBot para:', telefonoFormateado);
+        const response = await fetch(url, { method: 'GET', cache: 'no-store' });
+        const responseText = await response.text();
+        
         if (!response.ok) {
-           console.error('CallMeBot respondió con error:', response.status);
+           console.error('CallMeBot respondió con error:', response.status, responseText);
+        } else {
+           console.log('Respuesta de CallMeBot:', responseText);
         }
       } catch (fetchError) {
         console.error('Error llamando a CallMeBot:', fetchError);

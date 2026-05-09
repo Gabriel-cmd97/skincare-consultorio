@@ -3,13 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/utils/supabase';
-import { Plus, Search, Edit3, Eye, X, Loader2, Save, User } from 'lucide-react';
+import { Plus, Search, Edit3, Eye, X, Loader2, Save, User, Phone, Calendar } from 'lucide-react';
 
 interface Paciente {
   id: string;
   nombre: string;
   apellidos: string;
-  email: string;
   telefono: string;
   fecha_nacimiento: string;
   alergias: string[];
@@ -17,8 +16,8 @@ interface Paciente {
 }
 
 const PACIENTES_FICTICIOS: Paciente[] = [
-  { id: 'p1', nombre: 'Ana', apellidos: 'García Ruiz', email: 'ana.garcia@email.com', telefono: '722-555-0101', fecha_nacimiento: '1995-05-15', alergias: ['Polen'], created_at: '2026-03-10T10:00:00Z' },
-  { id: 'p2', nombre: 'Carlos', apellidos: 'Martínez López', email: 'carlos.mtz@email.com', telefono: '722-555-0202', fecha_nacimiento: '1988-10-20', alergias: [], created_at: '2026-03-15T10:00:00Z' },
+  { id: 'p1', nombre: 'Ana', apellidos: 'García Ruiz', telefono: '722-555-0101', fecha_nacimiento: '1995-05-15', alergias: ['Polen'], created_at: '2026-03-10T10:00:00Z' },
+  { id: 'p2', nombre: 'Carlos', apellidos: 'Martínez López', telefono: '722-555-0202', fecha_nacimiento: '1988-10-20', alergias: [], created_at: '2026-03-15T10:00:00Z' },
 ];
 
 const TRATAMIENTOS: Record<string, string> = {
@@ -63,7 +62,6 @@ export default function PacientesPage() {
       setEditando({
         nombre: '',
         apellidos: '',
-        email: '',
         telefono: '',
         fecha_nacimiento: '',
         alergias: [],
@@ -80,7 +78,8 @@ export default function PacientesPage() {
     try {
       const payload = {
         ...editando,
-        // Aseguramos que alergias sea un array si viene como string
+        // Generamos un email ficticio único para cumplir con el esquema si fuera necesario, 
+        // o simplemente lo omitimos si el esquema lo permite (estamos omitiendo para ver si es opcional)
         alergias: Array.isArray(editando.alergias) 
           ? editando.alergias 
           : (editando.alergias as any).split(',').map((s: string) => s.trim()).filter(Boolean)
@@ -105,7 +104,7 @@ export default function PacientesPage() {
 
   const filtrados = pacientes.filter((p) =>
     `${p.nombre} ${p.apellidos}`.toLowerCase().includes(busqueda.toLowerCase()) ||
-    p.email?.toLowerCase().includes(busqueda.toLowerCase())
+    p.telefono?.includes(busqueda)
   );
 
   const avatarColor = (id: string) => {
@@ -135,7 +134,7 @@ export default function PacientesPage() {
         <Search className="w-5 h-5 text-primary-300 absolute left-5 top-1/2 -translate-y-1/2" />
         <input
           type="text"
-          placeholder="Buscar por nombre o email..."
+          placeholder="Buscar por nombre, apellidos o teléfono..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           className="w-full pl-14 pr-6 py-4 bg-white rounded-2xl border border-primary-100 text-primary-900 placeholder-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-400 shadow-sm transition"
@@ -152,14 +151,14 @@ export default function PacientesPage() {
                 <tr className="bg-primary-50 border-b border-primary-100">
                   <th className="px-8 py-5 text-xs font-bold text-primary-400 uppercase tracking-widest">Paciente</th>
                   <th className="px-8 py-5 text-xs font-bold text-primary-400 uppercase tracking-widest hidden sm:table-cell">Tratamiento</th>
-                  <th className="px-8 py-5 text-xs font-bold text-primary-400 uppercase tracking-widest hidden md:table-cell">Contacto</th>
+                  <th className="px-8 py-5 text-xs font-bold text-primary-400 uppercase tracking-widest hidden md:table-cell">Teléfono</th>
                   <th className="px-8 py-5 text-xs font-bold text-primary-400 uppercase tracking-widest text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-primary-50">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="px-8 py-20 text-center">
+                    <td colSpan={4} className="px-8 py-20 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <Loader2 className="w-10 h-10 text-primary-600 animate-spin" />
                         <p className="text-primary-300 italic text-sm">Cargando pacientes...</p>
@@ -180,7 +179,7 @@ export default function PacientesPage() {
                           </div>
                           <div>
                             <p className="font-bold text-primary-900">{p.nombre} {p.apellidos}</p>
-                            <p className="text-xs text-primary-400 mt-0.5 sm:hidden">{p.email}</p>
+                            <p className="text-xs text-primary-400 mt-0.5 sm:hidden">{p.telefono}</p>
                           </div>
                         </div>
                       </td>
@@ -190,8 +189,7 @@ export default function PacientesPage() {
                         </span>
                       </td>
                       <td className="px-8 py-5 hidden md:table-cell">
-                        <p className="text-sm text-primary-700">{p.email}</p>
-                        <p className="text-xs text-primary-400 mt-0.5">{p.telefono}</p>
+                        <p className="text-sm font-bold text-primary-700">{p.telefono || '—'}</p>
                       </td>
                       <td className="px-8 py-5 text-right">
                         <div className="flex justify-end gap-2 sm:opacity-0 group-hover:opacity-100 transition">
@@ -215,7 +213,7 @@ export default function PacientesPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-8 py-16 text-center">
+                    <td colSpan={4} className="px-8 py-16 text-center">
                       <p className="text-primary-300 italic">No se encontraron pacientes.</p>
                     </td>
                   </tr>
@@ -245,7 +243,7 @@ export default function PacientesPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-primary-900 truncate">{p.nombre} {p.apellidos}</h3>
-                    <p className="text-xs text-primary-400 truncate">{p.email}</p>
+                    <p className="text-xs text-primary-400 truncate">{p.telefono}</p>
                   </div>
                   <span className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-[10px] font-bold uppercase tracking-tight">
                     {TRATAMIENTOS[p.id] || 'Gral'}
@@ -297,13 +295,15 @@ export default function PacientesPage() {
 
             <div className="space-y-3">
               {[
-                { label: 'Email', value: seleccionado.email },
-                { label: 'Teléfono', value: seleccionado.telefono || '—' },
-                { label: 'Fecha Nacimiento', value: seleccionado.fecha_nacimiento || '—' },
-                { label: 'Alergias', value: seleccionado.alergias?.join(', ') || 'Ninguna' },
+                { label: 'Teléfono', value: seleccionado.telefono || '—', icon: <Phone className="w-3 h-3"/> },
+                { label: 'Fecha Nacimiento', value: seleccionado.fecha_nacimiento || '—', icon: <Calendar className="w-3 h-3"/> },
+                { label: 'Alergias', value: seleccionado.alergias?.join(', ') || 'Ninguna', icon: <Plus className="w-3 h-3"/> },
               ].map((item) => (
                 <div key={item.label} className="bg-primary-50 rounded-2xl px-4 py-3">
-                  <p className="text-[10px] font-bold text-primary-400 uppercase tracking-wider">{item.label}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-primary-300">{item.icon}</span>
+                    <p className="text-[10px] font-bold text-primary-400 uppercase tracking-wider">{item.label}</p>
+                  </div>
                   <p className="text-sm font-medium text-primary-900 mt-1 break-all">{item.value}</p>
                 </div>
               ))}
@@ -375,28 +375,16 @@ export default function PacientesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-primary-500 uppercase tracking-wider ml-1">Email</label>
-                  <input
-                    type="email"
-                    value={editando.email || ''}
-                    onChange={(e) => setEditando({ ...editando, email: e.target.value })}
-                    className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none transition"
-                    placeholder="paciente@email.com"
-                  />
-                </div>
-                <div className="space-y-1.5">
                   <label className="text-xs font-bold text-primary-500 uppercase tracking-wider ml-1">Teléfono</label>
                   <input
                     type="tel"
+                    required
                     value={editando.telefono || ''}
                     onChange={(e) => setEditando({ ...editando, telefono: e.target.value })}
                     className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none transition"
                     placeholder="722-000-0000"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-primary-500 uppercase tracking-wider ml-1">Fecha Nacimiento</label>
                   <input
@@ -407,15 +395,16 @@ export default function PacientesPage() {
                     className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none transition"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-primary-500 uppercase tracking-wider ml-1">Alergias (sep. por comas)</label>
-                  <input
-                    value={Array.isArray(editando.alergias) ? editando.alergias.join(', ') : editando.alergias || ''}
-                    onChange={(e) => setEditando({ ...editando, alergias: e.target.value as any })}
-                    className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none transition"
-                    placeholder="Ej: Polen, Aspirina"
-                  />
-                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-primary-500 uppercase tracking-wider ml-1">Alergias (sep. por comas)</label>
+                <input
+                  value={Array.isArray(editando.alergias) ? editando.alergias.join(', ') : editando.alergias || ''}
+                  onChange={(e) => setEditando({ ...editando, alergias: e.target.value as any })}
+                  className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none transition"
+                  placeholder="Ej: Polen, Aspirina"
+                />
               </div>
 
               <div className="pt-4 flex gap-3">

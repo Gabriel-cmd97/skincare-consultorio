@@ -12,18 +12,14 @@ interface Paciente {
   telefono: string;
   fecha_nacimiento: string;
   alergias: string[];
+  tratamiento_principal: string;
   created_at: string;
 }
 
 const PACIENTES_FICTICIOS: Paciente[] = [
-  { id: 'p1', nombre: 'Ana', apellidos: 'García Ruiz', telefono: '722-555-0101', fecha_nacimiento: '1995-05-15', alergias: ['Polen'], created_at: '2026-03-10T10:00:00Z' },
-  { id: 'p2', nombre: 'Carlos', apellidos: 'Martínez López', telefono: '722-555-0202', fecha_nacimiento: '1988-10-20', alergias: [], created_at: '2026-03-15T10:00:00Z' },
+  { id: 'p1', nombre: 'Ana', apellidos: 'García Ruiz', telefono: '722-555-0101', fecha_nacimiento: '1995-05-15', alergias: ['Polen'], tratamiento_principal: 'Anti-manchas', created_at: '2026-03-10T10:00:00Z' },
+  { id: 'p2', nombre: 'Carlos', apellidos: 'Martínez López', telefono: '722-555-0202', fecha_nacimiento: '1988-10-20', alergias: [], tratamiento_principal: 'Control Acné', created_at: '2026-03-15T10:00:00Z' },
 ];
-
-const TRATAMIENTOS: Record<string, string> = {
-  p1: 'Anti-manchas',
-  p2: 'Control Acné',
-};
 
 export default function PacientesPage() {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
@@ -65,6 +61,7 @@ export default function PacientesPage() {
         telefono: '',
         fecha_nacimiento: '',
         alergias: [],
+        tratamiento_principal: 'General',
       });
     }
     setIsModalOpen(true);
@@ -185,7 +182,7 @@ export default function PacientesPage() {
                       </td>
                       <td className="px-8 py-5 hidden sm:table-cell">
                         <span className="px-3 py-1 bg-primary-50 text-primary-600 rounded-full text-xs font-bold">
-                          {TRATAMIENTOS[p.id] || 'General'}
+                          {p.tratamiento_principal || 'General'}
                         </span>
                       </td>
                       <td className="px-8 py-5 hidden md:table-cell">
@@ -246,7 +243,7 @@ export default function PacientesPage() {
                     <p className="text-xs text-primary-400 truncate">{p.telefono}</p>
                   </div>
                   <span className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-[10px] font-bold uppercase tracking-tight">
-                    {TRATAMIENTOS[p.id] || 'Gral'}
+                    {p.tratamiento_principal || 'Gral'}
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -397,14 +394,25 @@ export default function PacientesPage() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-primary-500 uppercase tracking-wider ml-1">Alergias (sep. por comas)</label>
-                <input
-                  value={Array.isArray(editando.alergias) ? editando.alergias.join(', ') : editando.alergias || ''}
-                  onChange={(e) => setEditando({ ...editando, alergias: e.target.value as any })}
-                  className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none transition"
-                  placeholder="Ej: Polen, Aspirina"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-primary-500 uppercase tracking-wider ml-1">Tratamiento Principal</label>
+                  <input
+                    value={editando.tratamiento_principal || ''}
+                    onChange={(e) => setEditando({ ...editando, tratamiento_principal: e.target.value })}
+                    className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none transition"
+                    placeholder="Ej: Rejuvenecimiento"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-primary-500 uppercase tracking-wider ml-1">Alergias (sep. por comas)</label>
+                  <input
+                    value={Array.isArray(editando.alergias) ? editando.alergias.join(', ') : editando.alergias || ''}
+                    onChange={(e) => setEditando({ ...editando, alergias: e.target.value as any })}
+                    className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none transition"
+                    placeholder="Ej: Polen, Aspirina"
+                  />
+                </div>
               </div>
 
               <div className="pt-4 flex gap-3">

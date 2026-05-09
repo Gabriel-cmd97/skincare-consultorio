@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { supabase } from '@/utils/supabase';
+import { crearNotificacionHibrida } from '@/actions/notificaciones';
 
 export default function SeedPage() {
   const [loading, setLoading] = useState(false);
@@ -77,7 +78,7 @@ export default function SeedPage() {
       const { error: errorTips } = await supabase.from('tips_rutinas').insert(tipsFicticios);
       if (errorTips) throw errorTips;
 
-      // 4. Productos Ficticios (NUEVO)
+      // 4. Productos Ficticios
       const productosFicticios = [
         {
           nombre: 'Sérum Vitamina C 15%',
@@ -92,34 +93,6 @@ export default function SeedPage() {
           precio: 290,
           categoria: 'Cuidado Solar',
           imagen_url: 'https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=800&q=80'
-        },
-        {
-          nombre: 'Limpiador Micelar Suave',
-          descripcion: 'Para pieles sensibles y con tendencia reactiva. Limpieza sin irritar.',
-          precio: 195,
-          categoria: 'Limpieza',
-          imagen_url: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=800&q=80'
-        },
-        {
-          nombre: 'Tónico con Niacinamida 10%',
-          descripcion: 'Controla el exceso de grasa y reduce el tamaño de los poros.',
-          precio: 240,
-          categoria: 'Skincare',
-          imagen_url: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800&q=80'
-        },
-        {
-          nombre: 'Sérum Ácido Hialurónico 2%',
-          descripcion: 'Hidratación profunda multicapa para una piel rellena y suave.',
-          precio: 385,
-          categoria: 'Skincare',
-          imagen_url: 'https://images.unsplash.com/photo-1631730450081-929043132717?w=800&q=80'
-        },
-        {
-          nombre: 'Contorno de Ojos Cafeína',
-          descripcion: 'Reduce bolsas y ojeras oscuras con efecto revitalizante inmediato.',
-          precio: 320,
-          categoria: 'Skincare',
-          imagen_url: 'https://images.unsplash.com/photo-1594489428504-5c0c480a15fd?w=800&q=80'
         }
       ];
 
@@ -136,10 +109,32 @@ export default function SeedPage() {
     }
   };
 
+  const testNotification = async () => {
+    setLoading(true);
+    setStatus('Enviando notificación de prueba...');
+    try {
+      const result = await crearNotificacionHibrida({
+        titulo: '🔔 Prueba de Sistema',
+        mensaje: 'Esta es una notificación de prueba para verificar que el sistema híbrido (Web + WhatsApp) funciona correctamente.',
+        tipo: 'sistema'
+      });
+      if (result.success) {
+        setStatus('¡Notificación enviada con éxito! Revisa tu panel y tu WhatsApp.');
+      } else {
+        throw result.error;
+      }
+    } catch (error: any) {
+      console.error(error);
+      setStatus('Error al enviar notificación: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-xl mx-auto py-20 text-center space-y-8">
       <h1 className="text-4xl font-serif font-bold text-primary-900">Generador de Datos</h1>
-      <p className="text-primary-600">Presiona el botón para llenar la base de datos con pacientes, citas y tips de prueba.</p>
+      <p className="text-primary-600">Presiona el botón para llenar la base de datos con pacientes, citas y tips de prueba o probar las notificaciones.</p>
       
       <div className="bg-white p-12 rounded-[50px] shadow-2xl border border-primary-100">
         <button 
@@ -148,6 +143,20 @@ export default function SeedPage() {
           className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-6 px-10 rounded-3xl transition shadow-xl hover:shadow-2xl disabled:opacity-50 text-xl"
         >
           {loading ? 'Generando...' : 'Generar Datos Ficticios'}
+        </button>
+
+        <div className="relative flex py-8 items-center">
+            <div className="flex-grow border-t border-primary-100"></div>
+            <span className="flex-shrink mx-4 text-primary-300 text-xs font-bold uppercase tracking-widest">O</span>
+            <div className="flex-grow border-t border-primary-100"></div>
+        </div>
+
+        <button 
+          onClick={testNotification}
+          disabled={loading}
+          className="w-full bg-white hover:bg-primary-50 text-primary-600 border-2 border-primary-600 font-bold py-6 px-10 rounded-3xl transition shadow-lg hover:shadow-xl disabled:opacity-50 text-xl"
+        >
+          {loading ? 'Enviando...' : 'Probar Notificación 📱'}
         </button>
         
         {status && (

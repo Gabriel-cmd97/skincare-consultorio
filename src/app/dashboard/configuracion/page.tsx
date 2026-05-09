@@ -3,6 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabase';
 
+interface ConfigItem {
+  clave: string;
+  valor: string;
+}
+
 export default function ConfigPage() {
   const [logoUrl, setLogoUrl] = useState('');
   const [primaryColor, setPrimaryColor] = useState('');
@@ -19,13 +24,16 @@ export default function ConfigPage() {
     try {
       const { data, error } = await supabase.from('configuracion').select('*');
       if (error) throw error;
-      
-      data.forEach((item) => {
-        if (item.clave === 'logo_url') setLogoUrl(item.valor);
-        if (item.clave === 'primary_color') setPrimaryColor(item.valor);
-        if (item.clave === 'whatsapp') setWhatsapp(item.valor);
-        if (item.clave === 'callmebot_api_key') setCallmebotApiKey(item.valor);
-      });
+
+      if (data && Array.isArray(data)) {
+        data.forEach((item: any) => {
+          const configItem = item as ConfigItem;
+          if (configItem.clave === 'logo_url') setLogoUrl(configItem.valor || '');
+          if (configItem.clave === 'primary_color') setPrimaryColor(configItem.valor || '');
+          if (configItem.clave === 'whatsapp') setWhatsapp(configItem.valor || '');
+          if (configItem.clave === 'callmebot_api_key') setCallmebotApiKey(configItem.valor || '');
+        });
+      }
     } catch (error) {
       console.error('Error fetching config:', error);
     } finally {
@@ -72,12 +80,12 @@ export default function ConfigPage() {
         <div className="space-y-4">
           <label className="block text-sm font-bold text-primary-900 uppercase tracking-wider">URL del Logotipo</label>
           <div className="flex gap-4 items-center">
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={logoUrl}
               onChange={(e) => setLogoUrl(e.target.value)}
               placeholder="https://ejemplo.com/logo.png"
-              className="flex-1 p-3 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-500 outline-none transition"
+              className="flex-1 p-3 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-500 outline-none transition text-primary-900"
             />
             {logoUrl && (
               <div className="w-12 h-12 rounded-full overflow-hidden border border-primary-100 bg-primary-50 flex-shrink-0">
@@ -93,12 +101,12 @@ export default function ConfigPage() {
           <label className="block text-sm font-bold text-primary-900 uppercase tracking-wider">Número de WhatsApp (Ventas)</label>
           <div className="flex gap-4 items-center">
             <span className="text-xl">📱</span>
-            <input 
-              type="tel" 
+            <input
+              type="tel"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
               placeholder="Ej: 527221234567"
-              className="flex-1 p-3 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-500 outline-none transition"
+              className="flex-1 p-3 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-500 outline-none transition text-primary-900"
             />
           </div>
           <p className="text-xs text-primary-400">Incluye el código de país (ej. 52 para México) sin el signo +. Aquí te llegarán los pedidos de la tienda.</p>
@@ -108,18 +116,18 @@ export default function ConfigPage() {
         <div className="space-y-4">
           <label className="block text-sm font-bold text-primary-900 uppercase tracking-wider">Color Primario (Marca)</label>
           <div className="flex gap-4 items-center">
-            <input 
-              type="color" 
+            <input
+              type="color"
               value={primaryColor || '#b87c6f'}
               onChange={(e) => setPrimaryColor(e.target.value)}
               className="w-12 h-12 rounded-lg cursor-pointer border-none"
             />
-            <input 
-              type="text" 
-              value={primaryColor}
+            <input
+              type="text"
+              value={primaryColor || ''}
               onChange={(e) => setPrimaryColor(e.target.value)}
               placeholder="#b87c6f"
-              className="w-32 p-3 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-500 outline-none transition uppercase"
+              className="w-32 p-3 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-500 outline-none transition uppercase text-primary-900"
             />
           </div>
           <p className="text-xs text-primary-400">Este color se usará para botones, encabezados y elementos destacados.</p>
@@ -130,12 +138,12 @@ export default function ConfigPage() {
           <label className="block text-sm font-bold text-primary-900 uppercase tracking-wider">API Key WhatsApp (CallMeBot)</label>
           <div className="flex gap-4 items-center">
             <span className="text-xl">🤖</span>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={callmebotApiKey}
               onChange={(e) => setCallmebotApiKey(e.target.value)}
               placeholder="Ej: 123456"
-              className="flex-1 p-3 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-500 outline-none transition"
+              className="flex-1 p-3 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-500 outline-none transition text-primary-900"
             />
           </div>
           <div className="text-xs text-primary-600 space-y-2 bg-primary-50 p-5 rounded-2xl border border-primary-100">
@@ -150,7 +158,7 @@ export default function ConfigPage() {
         </div>
 
         <div className="pt-6">
-          <button 
+          <button
             onClick={handleSave}
             disabled={saving}
             className="bg-primary-600 hover:bg-primary-700 text-white font-bold py-4 px-8 rounded-2xl transition shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center gap-2"
@@ -165,12 +173,12 @@ export default function ConfigPage() {
         <h2 className="text-lg font-bold text-primary-900 mb-4">Vista Previa</h2>
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-primary-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
-             {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="w-8 h-8 rounded-full object-cover" />
-             ) : (
-                <div className="w-8 h-8 bg-primary-200 rounded-full"></div>
-             )}
-             <span className="font-serif font-bold text-primary-800">LR Fisioderm</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="w-8 h-8 rounded-full object-cover" />
+            ) : (
+              <div className="w-8 h-8 bg-primary-200 rounded-full"></div>
+            )}
+            <span className="font-serif font-bold text-primary-800">LR Fisioderm</span>
           </div>
           <button className="px-4 py-2 rounded-lg text-white text-sm font-bold" style={{ backgroundColor: primaryColor || '#b87c6f' }}>
             Botón de Ejemplo

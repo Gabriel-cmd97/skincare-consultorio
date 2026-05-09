@@ -80,8 +80,8 @@ export default function CitasForm() {
   const hoy = new Date().toISOString().split("T")[0];
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-lg border border-primary-100 max-w-lg mx-auto">
-      <h3 className="text-2xl font-semibold mb-6 text-primary-900 text-center">Agenda tu visita</h3>
+    <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-primary-100 max-w-lg mx-auto">
+      <h3 className="text-xl sm:text-2xl font-semibold mb-6 text-primary-900 text-center">Agenda tu visita</h3>
       
       {message && (
         <div className={`p-4 mb-6 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>

@@ -29,7 +29,7 @@ export default async function Home() {
               <span className="w-2 h-2 bg-primary-400 rounded-full animate-pulse"></span>
               Especialidad en Fisioterapia Dermatofuncional
             </div>
-            <h2 className="text-5xl md:text-7xl font-serif font-bold text-primary-900 leading-[1.1]">
+            <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif font-bold text-primary-900 leading-[1.1]">
               Tu piel merece un <br />
               <span className="italic text-primary-500">enfoque clínico</span>
             </h2>
@@ -37,11 +37,11 @@ export default async function Home() {
               Tratamientos especializados en alteraciones de la piel y tejidos en Toluca. Cuidado profesional con base científica para resultados reales.
             </p>
             <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-5 pt-4">
-              <a href="#citas" className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-4 px-10 rounded-full transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 flex items-center justify-center gap-2">
+              <a href="#citas" className="w-full sm:w-auto bg-primary-600 hover:bg-primary-700 text-white font-semibold py-4 px-10 rounded-full transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 flex items-center justify-center gap-2">
                 Agendar Valoración
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
               </a>
-              <a href="#catalogo" className="bg-white hover:bg-primary-50 text-primary-700 border border-primary-200 font-semibold py-4 px-10 rounded-full transition-all shadow-sm hover:shadow-md flex items-center justify-center">
+              <a href="#catalogo" className="w-full sm:w-auto bg-white hover:bg-primary-50 text-primary-700 border border-primary-200 font-semibold py-4 px-10 rounded-full transition-all shadow-sm hover:shadow-md flex items-center justify-center">
                 Ver Productos
               </a>
             </div>
@@ -76,7 +76,7 @@ export default async function Home() {
         <div className="container mx-auto">
           <div className="max-w-3xl mx-auto text-center mb-20 space-y-4">
             <h2 className="text-sm uppercase tracking-[0.3em] font-bold text-primary-500">Línea de Cuidado</h2>
-            <h3 className="text-4xl md:text-5xl font-serif font-bold text-primary-900">Catálogo de Grado Médico</h3>
+            <h3 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-primary-900">Catálogo de Grado Médico</h3>
             <p className="text-lg text-primary-800/60 font-light">Seleccionamos cuidadosamente los mejores productos para potenciar tu tratamiento en casa.</p>
           </div>
           
@@ -96,11 +96,11 @@ export default async function Home() {
       </section>
 
       {/* Citas Section */}
-      <section id="citas" className="py-32 bg-white px-4 relative">
+      <section id="citas" className="py-20 lg:py-32 bg-white px-4 relative">
         <div className="container mx-auto max-w-6xl">
-          <div className="bg-primary-900 rounded-[50px] overflow-hidden shadow-2xl flex flex-col lg:grid lg:grid-cols-2">
-            <div className="p-12 md:p-20 space-y-8 flex flex-col justify-center">
-              <h2 className="text-4xl md:text-5xl font-serif font-bold text-white leading-tight">
+          <div className="bg-primary-900 rounded-3xl lg:rounded-[50px] overflow-hidden shadow-2xl flex flex-col lg:grid lg:grid-cols-2">
+            <div className="p-8 sm:p-12 md:p-20 space-y-6 lg:space-y-8 flex flex-col justify-center">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white leading-tight">
                 Empieza tu <br /><span className="italic text-primary-300">transformación</span> hoy
               </h2>
               <p className="text-primary-100/70 text-lg font-light leading-relaxed">
@@ -123,9 +123,9 @@ export default async function Home() {
               </div>
             </div>
             
-            <div className="bg-white p-8 md:p-16">
+            <div className="bg-white p-6 sm:p-8 md:p-16">
               <div className="max-w-md mx-auto">
-                <h4 className="text-2xl font-serif font-bold text-primary-900 mb-8 text-center lg:text-left">Agenda tu cita</h4>
+                <h4 className="text-xl sm:text-2xl font-serif font-bold text-primary-900 mb-6 lg:mb-8 text-center lg:text-left">Agenda tu cita</h4>
                 <CitasForm />
               </div>
             </div>

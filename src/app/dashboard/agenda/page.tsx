@@ -13,6 +13,23 @@ interface Cita {
   estado: string;
 }
 
+// Genera fechas relativas a hoy para los datos de prueba
+function daysFromNow(n: number, hours = 10, mins = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  d.setHours(hours, mins, 0, 0);
+  return d.toISOString();
+}
+
+const CITAS_FICTICIAS: Cita[] = [
+  { id: 'c1', paciente_nombre: 'Ana García Ruiz', paciente_email: 'ana@email.com', paciente_telefono: '555-0101', fecha_hora: daysFromNow(0, 9, 0), tipo_tratamiento: 'Limpieza Profunda', estado: 'confirmada' },
+  { id: 'c2', paciente_nombre: 'Lucía Fernández Sosa', paciente_email: 'lucia@email.com', paciente_telefono: '555-0202', fecha_hora: daysFromNow(0, 11, 30), tipo_tratamiento: 'Valoración Inicial', estado: 'confirmada' },
+  { id: 'c3', paciente_nombre: 'María Torres Vega', paciente_email: 'maria@email.com', paciente_telefono: '555-0303', fecha_hora: daysFromNow(0, 16, 0), tipo_tratamiento: 'Seguimiento', estado: 'pendiente' },
+  { id: 'c4', paciente_nombre: 'Mariana Pérez Cano', paciente_email: 'mariana@email.com', paciente_telefono: '555-0404', fecha_hora: daysFromNow(1, 10, 0), tipo_tratamiento: 'Peeling Químico', estado: 'confirmada' },
+  { id: 'c5', paciente_nombre: 'Carlos Martínez', paciente_email: 'carlos@email.com', paciente_telefono: '555-0505', fecha_hora: daysFromNow(2, 9, 30), tipo_tratamiento: 'Dermapen', estado: 'pendiente' },
+  { id: 'c6', paciente_nombre: 'Roberto Díaz Valdés', paciente_email: 'roberto@email.com', paciente_telefono: '555-0606', fecha_hora: daysFromNow(3, 11, 0), tipo_tratamiento: 'Control Acné', estado: 'confirmada' },
+];
+
 const DIAS_SEMANA = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -38,9 +55,10 @@ export default function AgendaPage() {
         .order('fecha_hora', { ascending: true });
       
       if (error) throw error;
-      setCitas(data || []);
+      setCitas(data && data.length > 0 ? data : CITAS_FICTICIAS);
     } catch (error) {
       console.error('Error fetching citas:', error);
+      setCitas(CITAS_FICTICIAS);
     } finally {
       setLoading(false);
     }

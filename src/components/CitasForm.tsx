@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/utils/supabase";
+import { crearNotificacionHibrida } from "@/actions/notificaciones";
 
 export default function CitasForm() {
   const [nombre, setNombre] = useState("");
@@ -64,6 +65,15 @@ export default function CitasForm() {
           type: "success",
           text: "¡Tu cita ha sido agendada con éxito! Te contactaremos pronto.",
         });
+
+        // Enviar notificación al especialista
+        await crearNotificacionHibrida({
+          titulo: 'Nueva Cita Agendada',
+          mensaje: `El paciente ${nombre} ha agendado una cita para ${tratamiento} el día ${fecha} a las ${hora}.`,
+          tipo: 'cita',
+          enlace: '/dashboard/agenda'
+        });
+
         setNombre("");
         setEmail("");
         setTelefono("");

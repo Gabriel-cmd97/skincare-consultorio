@@ -143,8 +143,9 @@ export default function PacientesPage() {
       </div>
 
       <div className={`grid gap-6 transition-all ${seleccionado ? 'lg:grid-cols-3' : 'lg:grid-cols-1'}`}>
-        {/* Tabla de pacientes */}
-        <div className={`bg-white rounded-[32px] border border-primary-50 shadow-sm overflow-hidden ${seleccionado ? 'lg:col-span-2' : ''}`}>
+        <div className={`transition-all ${seleccionado ? 'lg:col-span-2' : ''}`}>
+          {/* Vista Desktop (Tabla) */}
+        <div className="hidden sm:block bg-white rounded-[32px] border border-primary-50 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
@@ -223,6 +224,56 @@ export default function PacientesPage() {
             </table>
           </div>
         </div>
+
+        {/* Vista Móvil (Tarjetas) */}
+        <div className="sm:hidden space-y-4">
+          {loading ? (
+            <div className="bg-white rounded-3xl p-12 text-center border border-primary-50">
+              <Loader2 className="w-10 h-10 text-primary-600 animate-spin mx-auto mb-4" />
+              <p className="text-primary-400 italic">Cargando pacientes...</p>
+            </div>
+          ) : filtrados.length > 0 ? (
+            filtrados.map((p) => (
+              <div 
+                key={p.id} 
+                className="bg-white rounded-[28px] p-5 border border-primary-50 shadow-sm active:scale-[0.98] transition-transform"
+                onClick={() => setSeleccionado(p)}
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg ${avatarColor(p.id)}`}>
+                    {p.nombre[0]}{p.apellidos[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-primary-900 truncate">{p.nombre} {p.apellidos}</h3>
+                    <p className="text-xs text-primary-400 truncate">{p.email}</p>
+                  </div>
+                  <span className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-[10px] font-bold uppercase tracking-tight">
+                    {TRATAMIENTOS[p.id] || 'Gral'}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Link 
+                    href={`/dashboard/pacientes/${p.id}`}
+                    className="flex-1 bg-primary-900 text-white text-center py-3 rounded-xl text-xs font-bold"
+                  >
+                    Ver Expediente
+                  </Link>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleOpenModal(p); }}
+                    className="w-12 bg-primary-50 text-primary-600 flex items-center justify-center rounded-xl"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="bg-white rounded-3xl p-10 text-center border border-primary-50">
+              <p className="text-primary-300 italic">No se encontraron pacientes.</p>
+            </div>
+          )}
+        </div>
+      </div>
 
         {/* Panel de detalle rápido */}
         {seleccionado && (

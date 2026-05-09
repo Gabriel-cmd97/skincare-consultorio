@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/utils/supabase';
 import { Users, Calendar, Activity, TrendingUp, Clock, ChevronRight } from 'lucide-react';
+import { crearNotificacionHibrida } from '@/actions/notificaciones';
 
 const PACIENTES_FICTICIOS = [
   { id: 'p1', nombre: 'Ana', apellidos: 'García Ruiz', tratamiento: 'Anti-manchas', proxima: '28 Abr' },
@@ -19,6 +20,25 @@ const CITAS_HOY = [
 export default function DashboardPage() {
   const [totalPacientes, setTotalPacientes] = useState<number | null>(null);
   const [totalCitas, setTotalCitas] = useState<number | null>(null);
+  const [simulando, setSimulando] = useState(false);
+
+  const handleSimularCita = async () => {
+    setSimulando(true);
+    try {
+      await crearNotificacionHibrida({
+        titulo: 'Nueva Cita',
+        mensaje: 'Paciente Test agendó una cita de Valoración mañana a las 10:00 hrs.',
+        tipo: 'cita',
+        enlace: '/dashboard/agenda'
+      });
+      alert('¡Cita simulada! Revisa el icono de notificaciones y tu WhatsApp.');
+    } catch (e) {
+      console.error(e);
+      alert('Error simulando cita');
+    } finally {
+      setSimulando(false);
+    }
+  };
 
   useEffect(() => {
     async function fetchStats() {
@@ -68,12 +88,21 @@ export default function DashboardPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-10">
       {/* Header */}
-      <header>
-        <p className="text-xs text-primary-400 uppercase tracking-widest font-bold mb-1">
-          {new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-        </p>
-        <h1 className="text-4xl font-serif font-bold text-primary-900">Panel de Control</h1>
-        <p className="text-primary-500 mt-1">Resumen clínico de LR Fisioderm</p>
+      <header className="flex justify-between items-start flex-wrap gap-4">
+        <div>
+          <p className="text-xs text-primary-400 uppercase tracking-widest font-bold mb-1">
+            {new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
+          <h1 className="text-4xl font-serif font-bold text-primary-900">Panel de Control</h1>
+          <p className="text-primary-500 mt-1">Resumen clínico de LR Fisioderm</p>
+        </div>
+        <button 
+          onClick={handleSimularCita}
+          disabled={simulando}
+          className="bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm disabled:opacity-50 flex items-center gap-2"
+        >
+          {simulando ? 'Enviando...' : '🔔 Simular Cita (Notificación)'}
+        </button>
       </header>
 
       {/* Tarjetas de Estadísticas */}

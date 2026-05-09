@@ -77,6 +77,56 @@ export default function SeedPage() {
       const { error: errorTips } = await supabase.from('tips_rutinas').insert(tipsFicticios);
       if (errorTips) throw errorTips;
 
+      // 4. Productos Ficticios (NUEVO)
+      const productosFicticios = [
+        {
+          nombre: 'Sérum Vitamina C 15%',
+          descripcion: 'Antioxidante de alta potencia para manchas y luminosidad diaria.',
+          precio: 380,
+          categoria: 'Skincare',
+          imagen_url: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&q=80'
+        },
+        {
+          nombre: 'Hidratante de Barrera SPF 30',
+          descripcion: 'Protección diaria con efecto matificante y reparación de barrera.',
+          precio: 290,
+          categoria: 'Cuidado Solar',
+          imagen_url: 'https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=800&q=80'
+        },
+        {
+          nombre: 'Limpiador Micelar Suave',
+          descripcion: 'Para pieles sensibles y con tendencia reactiva. Limpieza sin irritar.',
+          precio: 195,
+          categoria: 'Limpieza',
+          imagen_url: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=800&q=80'
+        },
+        {
+          nombre: 'Tónico con Niacinamida 10%',
+          descripcion: 'Controla el exceso de grasa y reduce el tamaño de los poros.',
+          precio: 240,
+          categoria: 'Skincare',
+          imagen_url: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800&q=80'
+        },
+        {
+          nombre: 'Sérum Ácido Hialurónico 2%',
+          descripcion: 'Hidratación profunda multicapa para una piel rellena y suave.',
+          precio: 385,
+          categoria: 'Skincare',
+          imagen_url: 'https://images.unsplash.com/photo-1631730450081-929043132717?w=800&q=80'
+        },
+        {
+          nombre: 'Contorno de Ojos Cafeína',
+          descripcion: 'Reduce bolsas y ojeras oscuras con efecto revitalizante inmediato.',
+          precio: 320,
+          categoria: 'Skincare',
+          imagen_url: 'https://images.unsplash.com/photo-1594489428504-5c0c480a15fd?w=800&q=80'
+        }
+      ];
+
+      setStatus('Insertando catálogo de productos...');
+      const { error: errorProds } = await supabase.from('productos').insert(productosFicticios);
+      if (errorProds) throw errorProds;
+
       setStatus('¡Datos cargados con éxito!');
     } catch (error: any) {
       console.error(error);

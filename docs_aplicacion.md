@@ -1,56 +1,57 @@
-# Documentación Técnica: LR Fisioderm (Versión 0.3.0)
+# Documentación Técnica: LR Fisioderm (Versión 1.0.0 - Release Candidate)
 
 ## Resumen del Proyecto
-Aplicación web full-stack para el consultorio "LR Fisioderm" (Fisioterapia Dermatofuncional).
-La plataforma está dividida en dos partes principales:
-1. **Landing Page y PWA:** Interfaz pública y portal de seguimiento para los pacientes.
-2. **Dashboard de Especialista:** Panel administrativo privado para gestión clínica.
+Aplicación web full-stack adaptativa para el consultorio "LR Fisioderm".
+La plataforma cuenta con un enfoque "mobile-first" y está dividida en dos ecosistemas:
+1. **Landing Page y PWA (Portal de Pacientes):** Interfaz pública de ventas y aplicación instalable para seguimiento clínico.
+2. **Dashboard de Especialista:** Panel administrativo privado responsivo para gestión clínica y e-commerce por WhatsApp.
 
 ## Arquitectura y Stack Tecnológico
 * **Frontend:** Next.js 14 (App Router), React, Tailwind CSS.
-* **Backend y Base de Datos:** Supabase (Auth, Storage, y Postgres).
-* **Iconografía:** Lucide React.
-* **Componentes Visuales:** Diseño moderno, "glassmorphism", paleta de colores crema, dorados y verdes elegantes.
+* **Backend y Base de Datos:** Supabase (Auth, Storage y Postgres).
+* **PWA:** `manifest.ts` nativo de Next.js.
+* **Diseño:** Glassmorphism, paleta crema/dorado/verde, "Mobile-First".
 
-## Configuración Actual de Supabase
+## Módulos Core Implementados
 
-### 1. Storage (Almacenamiento)
-* Se utiliza un bucket llamado `avatares` configurado como **Público**.
-* **Propósito:** Almacenar las fotos de perfil de los pacientes.
+### 1. Panel de Especialista (100% Responsivo)
+- **Navegación Inteligente:** En escritorio usa un Sidebar permanente (`sticky`), en móviles (celulares) colapsa a una **Barra de Navegación Inferior (Bottom-Nav)** estilo app nativa para pulgar.
+- **Configuración de Marca (`/dashboard/configuracion`):** Interfaz para inyectar dinámicamente en la base de datos:
+  - URL del Logotipo.
+  - Color Primario (Acento).
+  - Número de WhatsApp para ventas/pedidos.
+- **Seeding de Catálogo (`/dashboard/seed`):** Módulo de carga rápida de datos reales para inicializar la tienda con productos de grado médico premium (Vitamina C, Protector Solar, etc.).
+- **Lista de Pacientes Dual:** 
+  - *Escritorio:* Tabla de datos estructurada con columnas.
+  - *Móvil:* Diseño de tarjetas (Cards) táctiles, previniendo el "scroll" horizontal.
 
-### 2. Autenticación (Auth)
-* Se utiliza Supabase Auth (Email/Password).
-* **Propósito:** Proteger la ruta `/dashboard`. Solo usuarios autenticados pueden acceder. El sistema de protección está implementado a nivel de Layout en `src/app/dashboard/layout.tsx`.
+### 2. Ecosistema PWA (Portal de Pacientes)
+- **Instalable:** Implementación de `manifest.ts` y meta-tags para permitir "Añadir a pantalla de inicio" (Instalación nativa sin App Store).
+- **Inicio de Sesión sin contraseñas:** El paciente accede digitando o pegando su Código Único (UUID).
+- **Vistas Personalizadas:**
+  - *Mi Tratamiento:* Renderiza la evaluación clínica y la rutina prescrita desde el dashboard.
+  - *Inicio (Blog):* Consume la tabla `tips_rutinas` para leer consejos públicos escritos por la especialista.
+  - *Tienda de Productos:* Catálogo con botón de "Comprar".
 
-## Nuevas Funcionalidades Implementadas (v0.3.0)
+### 3. Integración WhatsApp (E-Commerce Simplificado)
+- **Cero-API y Gratuito:** Uso de la API pública `wa.me` para conectar pacientes con el especialista sin costos.
+- **Tienda PWA:** Al hacer clic en "Comprar" en un producto de la PWA, se lee el número guardado en configuración y abre WhatsApp con un mensaje pre-llenado indicando el producto de interés.
+- **Envío de Instrucciones:** En el expediente clínico del paciente (`/dashboard/pacientes/[id]`), hay un botón "Enviar a paciente" que redacta un WhatsApp automático con el código del paciente y los pasos para instalar la PWA.
 
-### Panel de Especialista (`/dashboard`)
-1. **Sidebar Mejorado (Navegación Permanente):**
-   - El menú lateral ahora es fijo (`sticky h-screen`). Al hacer scroll en la lista de pacientes o agenda, el menú y el botón de "Cerrar Sesión" permanecen siempre visibles.
-   - El logotipo ahora funciona como un botón rápido para regresar a la vista pública de la web.
+### 4. Sistema de Notificaciones Híbrido
+- **Base de Datos:** Uso de la tabla `notificaciones` en Supabase para almacenar el historial de eventos (citas, pedidos, avisos del sistema).
+- **Interfaz Web (Panel de Especialista):**
+  - Icono de campanita con contador dinámico visible tanto en el menú lateral (escritorio) como en la barra superior (móviles).
+  - Página dedicada `Mobile-First` en `/dashboard/notificaciones` para gestionar, leer y acceder al contenido de las notificaciones.
+- **Alertas Push (WhatsApp):** Integración con la API gratuita de **CallMeBot** mediante una `Server Action` de Next.js, la cual envía un mensaje de texto automático al WhatsApp del especialista cada vez que se genera un evento crítico (ej. una cita nueva), funcionando de manera nativa sobre el entorno de Cloudflare Pages.
 
-2. **Compartir App (Código QR):**
-   - En el inicio del Dashboard se implementó una tarjeta dinámica que genera un Código QR apuntando a la ruta `/pwa`. Permite a los pacientes escanearlo desde el consultorio para entrar a su portal móvil.
+## Seguridad y Conexión (Supabase)
+* **Auth:** La ruta `/dashboard` está protegida por Supabase Auth (JWT verificado en el cliente).
+* **Storage:** Bucket `avatares` público para subir imágenes de perfil.
+* **RLS (Row-Level Security):**
+  - `productos`, `tips_rutinas` y `configuracion` accesibles públicamente (modo lectura) vía rol `anon`.
+  - `pacientes` accesible públicamente (con conocimiento de UUID exacto) para permitir que la PWA lea el perfil del paciente con el código correcto.
+* **Claves:** El entorno local (`.env.local`) y de producción (Cloudflare) utilizan `NEXT_PUBLIC_SUPABASE_URL` y la clave `anon` (`NEXT_PUBLIC_SUPABASE_ANON_KEY`).
 
-### Gestión de Pacientes y Expedientes
-1. **Modal de Edición de Datos Básicos:**
-   - La tabla en `/dashboard/pacientes` ahora tiene botones de edición reales.
-   - Es posible agregar o editar: Nombre, Email, Teléfono, Fecha de Nacimiento y una lista dinámica de **Alergias**.
-
-2. **Edición de Evaluación Clínica (Expediente):**
-   - En la vista detallada de cada paciente (`/dashboard/pacientes/[id]`), se integró un sistema de actualización de estado clínico.
-   - Permite modificar: **Fototipo, Hidratación, Elasticidad, Sensibilidad** y **Objetivo** (Estético/Funcional).
-   - Permite escribir y visualizar un **Protocolo de Tratamiento** (rutina) paso a paso, guardado de forma persistente.
-
-### Landing Page y Rutas Globales
-1. **Acceso Pacientes:**
-   - Agregado un botón de "Acceso Pacientes" en la barra de navegación superior (Navbar), facilitando que los usuarios existentes entren a la PWA.
-2. **Corrección de Anclas (Enlaces):**
-   - Se modificaron los enlaces de `#catalogo` y `#citas` por `/#catalogo` y `/#citas` a nivel global (`layout.tsx`). Esto garantiza que los botones de navegación funcionen correctamente incluso si el usuario intenta usarlos estando dentro del Dashboard o de la PWA.
-3. **Integración del Botón Agenda:**
-   - El botón de "Agendar Cita" dentro del panel administrativo ahora redirige limpiamente al formulario inteligente (que previene colisiones de horario) ubicado en la Landing Page.
-
-## Siguientes Pasos (Roadmap)
-* Configuración de la sección de creación/edición del "Catálogo" de productos.
-* Implementación del Stripe Link para pagos de productos.
-* Sistema CRUD completo para publicar "Tips y Rutinas" dinámicos en la PWA.
+## Siguientes Pasos Futuros (Versiones Posteriores)
+* Habilitar enlaces de pago reales con Stripe para los productos en caso de querer cobrar con tarjeta (actualmente gestionado por WhatsApp).

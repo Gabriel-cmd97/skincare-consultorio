@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/utils/supabase';
-import { Loader2, User, Key, ArrowRight, LogOut, Instagram, Camera } from 'lucide-react';
+import { Loader2, User, Key, ArrowRight, LogOut, Instagram, Camera, Tag, Image as ImageIcon } from 'lucide-react';
 
 interface Tip {
   id: string;
@@ -252,10 +252,62 @@ function VistaPerfil({ paciente, onLogout }: { paciente: any, onLogout: () => vo
   );
 }
 
+function VistaTienda({ productos, loading, whatsappNumber }: { productos: any[], loading: boolean, whatsappNumber: string }) {
+  return (
+    <main className="px-5 pt-6 pb-4 space-y-6">
+      <div className="bg-white rounded-[28px] p-5 border border-primary-100 shadow-sm flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-serif font-bold text-primary-900 mb-1">Productos Recomendados</h2>
+          <p className="text-[10px] text-primary-400 uppercase tracking-widest font-bold">Seleccionados por tu especialista</p>
+        </div>
+        <div className="w-10 h-10 bg-primary-50 rounded-full flex items-center justify-center text-primary-600">
+          <Tag className="w-5 h-5" />
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4 pb-10">
+          {productos.map((p) => (
+            <div key={p.id} className="bg-white rounded-[24px] overflow-hidden shadow-sm border border-primary-50 group active:scale-95 transition">
+              <div className="aspect-square overflow-hidden bg-primary-50">
+                {p.imagen_url ? (
+                  <img src={p.imagen_url} alt={p.nombre} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-primary-200">
+                    <ImageIcon className="w-8 h-8" />
+                  </div>
+                )}
+              </div>
+              <div className="p-4 space-y-2">
+                <h3 className="font-bold text-primary-900 text-[11px] leading-tight h-8 line-clamp-2">{p.nombre}</h3>
+                <p className="text-primary-600 font-serif font-bold text-base">${p.precio}</p>
+                <a 
+                  href={p.stripe_link || `https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hola, me interesa el producto: ' + p.nombre)}`}
+                  target="_blank"
+                  className="w-full block bg-primary-900 text-white text-[10px] font-bold py-2.5 rounded-xl text-center hover:bg-primary-800 transition"
+                >
+                  Comprar
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </main>
+  );
+}
+
 export default function PWAPage() {
   const [paciente, setPaciente] = useState<any>(null);
   const [content, setContent] = useState<Tip[]>([]);
+  const [productos, setProductos] = useState<any[]>([]);
+  const [whatsapp, setWhatsapp] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingProds, setLoadingProds] = useState(true);
   const [filter, setFilter] = useState<'todos' | 'tip' | 'rutina'>('todos');
   const [vista, setVista] = useState<Vista>('inicio');
   const [checking, setChecking] = useState(true);
@@ -265,7 +317,18 @@ export default function PWAPage() {
     if (saved) setPaciente(JSON.parse(saved));
     setChecking(false);
     fetchContent();
+    fetchProductos();
+    fetchConfig();
   }, []);
+
+  async function fetchConfig() {
+    try {
+      const { data } = await supabase.from('configuracion').select('valor').eq('clave', 'whatsapp').single();
+      if (data) setWhatsapp(data.valor);
+    } catch {
+      // Ignorar error si no existe la configuración
+    }
+  }
 
   async function fetchContent() {
     try {
@@ -275,6 +338,17 @@ export default function PWAPage() {
       setContent(TIPS_FICTICIOS);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchProductos() {
+    try {
+      const { data } = await supabase.from('productos').select('*').order('created_at', { ascending: false });
+      if (data) setProductos(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingProds(false);
     }
   }
 
@@ -301,7 +375,8 @@ export default function PWAPage() {
           <div>
             <h1 className="text-2xl font-serif font-bold text-primary-900 truncate max-w-[200px]">
               {vista === 'inicio' ? `¡Hola, ${paciente.nombre}!` : 
-               vista === 'perfil' ? 'Mi Perfil' : 'Portal'}
+               vista === 'perfil' ? 'Mi Perfil' : 
+               vista === 'tienda' ? 'Tienda' : 'Portal'}
             </h1>
             <p className="text-primary-500 text-[10px] uppercase tracking-widest font-bold mt-1">LR Fisioderm</p>
           </div>
@@ -312,11 +387,13 @@ export default function PWAPage() {
       </header>
 
       {vista === 'inicio' && <VistaInicio tips={content} loading={loading} filter={filter} setFilter={setFilter} />}
+      {vista === 'tienda' && <VistaTienda productos={productos} loading={loadingProds} whatsappNumber={whatsapp} />}
       {vista === 'perfil' && <VistaPerfil paciente={paciente} onLogout={handleLogout} />}
 
       <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-sm bg-primary-900/95 backdrop-blur-lg rounded-full px-6 py-3 flex justify-around items-center shadow-2xl z-50 border border-white/10">
         {[
           { id: 'inicio', label: 'Inicio', icon: <Key className="w-5 h-5" /> },
+          { id: 'tienda', label: 'Tienda', icon: <Tag className="w-5 h-5" /> },
           { id: 'perfil', label: 'Mi Piel', icon: <User className="w-5 h-5" /> },
         ].map((item) => (
           <button
@@ -334,3 +411,4 @@ export default function PWAPage() {
     </div>
   );
 }
+

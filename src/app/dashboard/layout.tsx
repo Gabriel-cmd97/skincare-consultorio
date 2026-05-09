@@ -18,6 +18,9 @@ const NAV_LINKS = [
 ];
 
 const CONTENT_LINKS = [
+  { href: '/dashboard/catalogo', label: 'Catálogo Productos', icon: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+  )},
   { href: '/dashboard/tips', label: 'Rutinas y Tips', icon: (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
   )},
@@ -29,6 +32,7 @@ const CONTENT_LINKS = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [checking, setChecking] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -52,7 +56,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
     });
 
-    return () => subscription.unsubscribe();
+    const fetchUnreadCount = async () => {
+      const { count } = await supabase
+        .from('notificaciones')
+        .select('*', { count: 'exact', head: true })
+        .eq('leida', false);
+      if (count !== null) setUnreadCount(count);
+    };
+    fetchUnreadCount();
+
+    const channel = supabase
+      .channel('layout_notificaciones')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notificaciones' }, payload => {
+         fetchUnreadCount();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+      supabase.removeChannel(channel);
+    };
   }, [router]);
 
   const handleLogout = async () => {
@@ -78,9 +101,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 flex">
-      {/* Sidebar Fijo */}
-      <aside className="w-64 bg-primary-900 text-primary-100 flex flex-col shadow-2xl flex-shrink-0 sticky top-0 h-screen">
+    <div className="min-h-screen bg-stone-50 flex flex-col lg:flex-row">
+      {/* Sidebar - Solo visible en desktop */}
+      <aside className="hidden lg:flex w-64 bg-primary-900 text-primary-100 flex-col shadow-2xl flex-shrink-0 sticky top-0 h-screen">
         {/* Logo con Link a la Web Principal */}
         <div className="p-8 border-b border-primary-800">
           <Link href="/" className="flex items-center gap-3 group" title="Ir al Sitio Web">
@@ -136,8 +159,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Usuario + Logout */}
         <div className="p-4 border-t border-primary-800 space-y-2">
+          <Link
+            href="/dashboard/notificaciones"
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all font-medium ${isActive('/dashboard/notificaciones') ? 'bg-primary-600 text-white shadow-md' : 'text-primary-300 hover:bg-primary-800 hover:text-white'}`}
+          >
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              Notificaciones
+            </div>
+            {unreadCount > 0 && (
+              <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Link>
+
           {user && (
-            <div className="px-4 py-3 rounded-xl bg-primary-800/50">
+            <div className="px-4 py-3 rounded-xl bg-primary-800/50 mt-2">
               <p className="text-xs text-primary-400 font-bold uppercase tracking-wider">Sesión activa</p>
               <p className="text-sm text-primary-200 font-medium mt-1 truncate">{user.email}</p>
             </div>
@@ -154,10 +192,60 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
+      {/* Header Móvil - Solo visible en móvil */}
+      <header className="lg:hidden bg-primary-900 text-white p-4 flex justify-between items-center sticky top-0 z-[60] shadow-md">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center font-serif font-bold text-sm">LR</div>
+          <span className="font-serif font-bold text-sm tracking-tight">LR Fisioderm</span>
+        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard/notificaciones" className="relative p-2 text-primary-200 hover:text-white transition">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-primary-900">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Link>
+          <button onClick={handleLogout} className="text-primary-400 p-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+          </button>
+        </div>
+      </header>
+
       {/* Área principal */}
-      <main className="flex-1 p-8 overflow-auto">
+      <main className="flex-1 p-4 md:p-8 pb-24 lg:pb-8 overflow-auto min-h-screen">
         {children}
       </main>
+
+      {/* Navegación Inferior Móvil - Solo visible en móvil */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-primary-100 flex justify-around items-center py-3 px-2 z-[60] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        {[...NAV_LINKS, CONTENT_LINKS[0]].map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={`flex flex-col items-center gap-1 transition-all ${
+              isActive(link.href) ? 'text-primary-600 scale-110' : 'text-primary-300'
+            }`}
+          >
+            <div className={isActive(link.href) ? 'text-primary-600' : ''}>
+              {link.icon}
+            </div>
+            <span className="text-[9px] font-bold uppercase tracking-tighter">
+              {link.label.split(' ')[0]}
+            </span>
+          </Link>
+        ))}
+        {/* Botón de Ajustes rápido */}
+        <Link 
+          href="/dashboard/configuracion"
+          className={`flex flex-col items-center gap-1 ${isActive('/dashboard/configuracion') ? 'text-primary-600' : 'text-primary-300'}`}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>
+          <span className="text-[9px] font-bold uppercase tracking-tighter">Config</span>
+        </Link>
+      </nav>
     </div>
   );
 }
+

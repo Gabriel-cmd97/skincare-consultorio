@@ -45,16 +45,17 @@ export default function RootLayout({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </a>
-                {/* Tooltip */}
-                <div className="absolute right-0 top-full mt-2 w-44 bg-primary-900 text-white text-xs rounded-xl px-3 py-2 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-center">
-                  Portal Especialista
-                  <div className="absolute -top-1 right-3 w-2 h-2 bg-primary-900 rotate-45" />
-                </div>
               </div>
             </nav>
-            <a href="/#citas" className="md:hidden bg-primary-500 text-white p-2 rounded-full shadow-lg">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            </a>
+
+            <div className="flex md:hidden items-center gap-2">
+              <a href="/pwa" className="text-[10px] uppercase tracking-wider font-bold text-primary-600 bg-primary-50 px-2.5 py-1.5 rounded-lg border border-primary-100">
+                Pacientes
+              </a>
+              <a href="/dashboard/login" className="text-primary-200 p-2" title="Panel Especialista">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              </a>
+            </div>
           </div>
         </header>
         <main className="flex-grow">

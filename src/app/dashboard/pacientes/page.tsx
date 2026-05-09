@@ -272,13 +272,17 @@ export default function PacientesPage() {
 
         {/* Panel de detalle rápido */}
         {seleccionado && (
-          <div className="bg-white rounded-[32px] border border-primary-50 shadow-sm p-6 space-y-6 h-fit sticky top-8">
-            <div className="flex justify-between items-start">
-              <h2 className="text-xl font-serif font-bold text-primary-900">Vista Rápida</h2>
-              <button onClick={() => setSeleccionado(null)} className="text-primary-300 hover:text-primary-500 p-1 rounded-lg transition">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+          <div className="fixed inset-0 z-[90] lg:static lg:z-auto flex items-end lg:items-start justify-center p-4 lg:p-0">
+            {/* Overlay para móvil */}
+            <div className="absolute inset-0 bg-primary-900/40 backdrop-blur-sm lg:hidden" onClick={() => setSeleccionado(null)} />
+            
+            <div className="bg-white rounded-[32px] border border-primary-50 shadow-2xl lg:shadow-sm p-6 space-y-6 h-fit w-full max-w-md lg:max-w-none lg:sticky lg:top-8 relative z-10 animate-in slide-in-from-bottom-10 lg:animate-none">
+              <div className="flex justify-between items-start">
+                <h2 className="text-xl font-serif font-bold text-primary-900">Vista Rápida</h2>
+                <button onClick={() => setSeleccionado(null)} className="text-primary-300 hover:text-primary-500 p-1 rounded-lg transition">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
             <div className="flex items-center gap-4">
               <div className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl flex-shrink-0 ${avatarColor(seleccionado.id)}`}>
@@ -320,6 +324,7 @@ export default function PacientesPage() {
                 Editar Datos Básicos
               </button>
             </div>
+          </div>
           </div>
         )}
       </div>

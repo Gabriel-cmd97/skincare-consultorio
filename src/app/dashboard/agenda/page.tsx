@@ -215,9 +215,8 @@ export default function AgendaPage() {
                 key={cita.id}
                 className="bg-white rounded-[32px] border border-primary-50 shadow-sm hover:shadow-xl transition-all duration-300 p-6 flex flex-col sm:flex-row items-center gap-6 group"
               >
-                <div className="w-16 h-16 bg-primary-900 text-white rounded-2xl flex flex-col items-center justify-center flex-shrink-0 shadow-lg">
-                   <span className="text-xs font-bold uppercase">{fecha.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false}).split(':')[0]}</span>
-                   <span className="text-lg font-serif font-bold tracking-tighter">:{fecha.toLocaleTimeString([], {minute:'2-digit'})}</span>
+                <div className="w-20 h-16 bg-primary-900 text-white rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                   <span className="text-xl font-serif font-bold tracking-tighter">{fecha.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false})}</span>
                 </div>
 
                 <div className="flex-1 text-center sm:text-left">

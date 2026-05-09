@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import PublicHeader from "@/components/PublicHeader";
 
 export const metadata: Metadata = {
   title: "LR Fisioderm | Fisioterapia Dermatofuncional",
@@ -14,7 +15,8 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="antialiased min-h-screen flex flex-col font-sans">
-        <header className="bg-white/80 backdrop-blur-md border-b border-primary-100 text-primary-900 p-4 sticky top-0 z-50 transition-all duration-300">
+        <PublicHeader>
+          <header className="bg-white/80 backdrop-blur-md border-b border-primary-100 text-primary-900 p-4 sticky top-0 z-50 transition-all duration-300">
           <div className="container mx-auto flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-serif font-bold text-xl border border-primary-200">
@@ -58,9 +60,11 @@ export default function RootLayout({
             </div>
           </div>
         </header>
+        </PublicHeader>
         <main className="flex-grow">
           {children}
         </main>
+        <PublicHeader>
         <footer className="bg-primary-900 text-primary-100 py-16 mt-auto">
           <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
             <div>
@@ -91,6 +95,7 @@ export default function RootLayout({
             <p className="text-primary-500 text-sm">&copy; {new Date().getFullYear()} LR Fisioderm. Todos los derechos reservados.</p>
           </div>
         </footer>
+        </PublicHeader>
       </body>
     </html>
   );

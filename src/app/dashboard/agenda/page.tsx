@@ -64,6 +64,18 @@ export default function AgendaPage() {
     }
   }
 
+  async function handleDelete(id: string) {
+    if (!confirm('¿Estás seguro de eliminar esta cita?')) return;
+    try {
+      const { error } = await supabase.from('citas').delete().eq('id', id);
+      if (error) throw error;
+      fetchCitas();
+    } catch (error) {
+      console.error('Error deleting cita:', error);
+      alert('Error al eliminar la cita.');
+    }
+  }
+
   // Generar los días de la semana actual para el mini-calendario
   const getDiasSemana = () => {
     const dias = [];
@@ -233,7 +245,10 @@ export default function AgendaPage() {
                   <button className="p-4 bg-primary-50 text-primary-600 rounded-2xl hover:bg-primary-600 hover:text-white transition-all shadow-sm">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                   </button>
-                  <button className="p-4 bg-red-50 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                  <button 
+                    onClick={() => handleDelete(cita.id)}
+                    className="p-4 bg-red-50 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                  >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                   </button>
                 </div>

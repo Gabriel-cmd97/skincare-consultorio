@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/utils/supabase';
-import { Plus, Search, Edit3, Eye, X, Loader2, Save, User, Phone, Calendar } from 'lucide-react';
+import { Plus, Search, Edit3, Eye, X, Loader2, Save, User, Phone, Calendar, Trash2 } from 'lucide-react';
 
 interface Paciente {
   id: string;
@@ -96,6 +96,22 @@ export default function PacientesPage() {
       alert('Error al guardar los datos del paciente.');
     } finally {
       setGuardando(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de que deseas eliminar este paciente? Esta acción no se puede deshacer.')) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase.from('pacientes').delete().eq('id', id);
+      if (error) throw error;
+      await fetchPacientes();
+    } catch (err) {
+      console.error('Error al eliminar:', err);
+      alert('Error al eliminar el paciente.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -204,6 +220,13 @@ export default function PacientesPage() {
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}
+                            className="p-2 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition"
+                            title="Eliminar paciente"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -258,6 +281,12 @@ export default function PacientesPage() {
                     className="w-12 bg-primary-50 text-primary-600 flex items-center justify-center rounded-xl"
                   >
                     <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}
+                    className="w-12 bg-red-50 text-red-500 flex items-center justify-center rounded-xl"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>

@@ -13,6 +13,14 @@ export default function ConfigPage() {
   const [primaryColor, setPrimaryColor] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [callmebotApiKey, setCallmebotApiKey] = useState('');
+  
+  // Secciones Landing
+  const [landingServicios, setLandingServicios] = useState(true);
+  const [landingProceso, setLandingProceso] = useState(true);
+  const [landingTestimonios, setLandingTestimonios] = useState(false);
+  const [landingEspecialista, setLandingEspecialista] = useState(true);
+  const [landingUbicacion, setLandingUbicacion] = useState(true);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -32,6 +40,12 @@ export default function ConfigPage() {
           if (configItem.clave === 'primary_color') setPrimaryColor(configItem.valor || '');
           if (configItem.clave === 'whatsapp') setWhatsapp(configItem.valor || '');
           if (configItem.clave === 'callmebot_api_key') setCallmebotApiKey(configItem.valor || '');
+          
+          if (configItem.clave === 'landing_servicios') setLandingServicios(configItem.valor === 'true');
+          if (configItem.clave === 'landing_proceso') setLandingProceso(configItem.valor === 'true');
+          if (configItem.clave === 'landing_testimonios') setLandingTestimonios(configItem.valor === 'true');
+          if (configItem.clave === 'landing_especialista') setLandingEspecialista(configItem.valor === 'true');
+          if (configItem.clave === 'landing_ubicacion') setLandingUbicacion(configItem.valor === 'true');
         });
       }
     } catch (error) {
@@ -49,6 +63,11 @@ export default function ConfigPage() {
         { clave: 'primary_color', valor: primaryColor },
         { clave: 'whatsapp', valor: whatsapp },
         { clave: 'callmebot_api_key', valor: callmebotApiKey },
+        { clave: 'landing_servicios', valor: String(landingServicios) },
+        { clave: 'landing_proceso', valor: String(landingProceso) },
+        { clave: 'landing_testimonios', valor: String(landingTestimonios) },
+        { clave: 'landing_especialista', valor: String(landingEspecialista) },
+        { clave: 'landing_ubicacion', valor: String(landingUbicacion) },
       ];
 
       for (const update of updates) {
@@ -154,6 +173,35 @@ export default function ConfigPage() {
               <li>El bot te responderá inmediatamente con tu <b>API Key</b> (una clave de números). Pégala aquí arriba.</li>
             </ol>
             <p className="text-primary-500 italic mt-2">Asegúrate de que tu "Número de WhatsApp (Ventas)" esté correctamente escrito con el código de país (ej. 52 para México).</p>
+          </div>
+        </div>
+
+        {/* Secciones de la Landing Page */}
+        <div className="space-y-4 pt-6 border-t border-primary-50">
+          <label className="block text-sm font-bold text-primary-900 uppercase tracking-wider">Secciones de la Página Principal (Landing Page)</label>
+          <p className="text-xs text-primary-500 mb-4">Activa o desactiva las secciones que quieres mostrar en tu sitio web público.</p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[
+              { id: 'servicios', label: '1. Servicios y Tratamientos', state: landingServicios, setter: setLandingServicios },
+              { id: 'proceso', label: '2. Proceso (3 Pasos)', state: landingProceso, setter: setLandingProceso },
+              { id: 'testimonios', label: '3. Testimonios de Pacientes', state: landingTestimonios, setter: setLandingTestimonios },
+              { id: 'especialista', label: '4. Sobre la Especialista', state: landingEspecialista, setter: setLandingEspecialista },
+              { id: 'ubicacion', label: '5. Ubicación y Contacto', state: landingUbicacion, setter: setLandingUbicacion },
+            ].map((seccion) => (
+              <label key={seccion.id} className="flex items-center gap-3 p-4 border border-primary-100 rounded-2xl cursor-pointer hover:bg-primary-50 transition">
+                <div className="relative inline-block w-10 h-6">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={seccion.state}
+                    onChange={(e) => seccion.setter(e.target.checked)}
+                  />
+                  <div className="w-10 h-6 bg-primary-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-primary-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                </div>
+                <span className="text-sm font-bold text-primary-900">{seccion.label}</span>
+              </label>
+            ))}
           </div>
         </div>
 

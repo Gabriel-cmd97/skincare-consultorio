@@ -29,6 +29,16 @@ export default async function Home() {
   const showEspecialista = config.landing_especialista !== 'false';
   const showUbicacion = config.landing_ubicacion !== 'false';
 
+  let especialistaInfo = { titulo: 'Lic. en Fisioterapia', descripcion: 'Con especialidad en Fisioterapia Dermatofuncional. Mi pasión es devolverle la salud y funcionalidad a tu piel a través de tratamientos con rigor científico y tecnología de vanguardia.', instagram: 'lr_fisderm' };
+  let ubicacionInfo = { direccion: 'Toluca de Lerdo, Estado de México', horario: 'Lunes a Viernes: 9:00 am - 6:00 pm\nSábados: Previa cita' };
+  
+  if (config.especialista_info) {
+    try { especialistaInfo = { ...especialistaInfo, ...JSON.parse(config.especialista_info) }; } catch(e){}
+  }
+  if (config.ubicacion_info) {
+    try { ubicacionInfo = { ...ubicacionInfo, ...JSON.parse(config.ubicacion_info) }; } catch(e){}
+  }
+
   return (
     <div className="bg-white">
       {/* Hero Section */}
@@ -212,12 +222,12 @@ export default async function Home() {
                 <div className="inline-block px-4 py-1.5 bg-primary-100 text-primary-700 rounded-full text-xs font-bold tracking-widest uppercase w-fit">
                   La Especialista
                 </div>
-                <h3 className="text-3xl sm:text-4xl font-serif font-bold text-primary-900">Lic. en Fisioterapia</h3>
-                <p className="text-lg text-primary-600 font-light leading-relaxed">
-                  Con especialidad en Fisioterapia Dermatofuncional. Mi pasión es devolverle la salud y funcionalidad a tu piel a través de tratamientos con rigor científico y tecnología de vanguardia.
+                <h3 className="text-3xl sm:text-4xl font-serif font-bold text-primary-900">{especialistaInfo.titulo}</h3>
+                <p className="text-lg text-primary-600 font-light leading-relaxed whitespace-pre-line">
+                  {especialistaInfo.descripcion}
                 </p>
                 <div className="pt-4">
-                  <a href="https://instagram.com/lr_fisderm" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-primary-600 font-bold hover:text-primary-800 transition">
+                  <a href={`https://instagram.com/${especialistaInfo.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-primary-600 font-bold hover:text-primary-800 transition">
                     <Instagram className="w-5 h-5" /> Sígueme en Instagram
                   </a>
                 </div>
@@ -282,7 +292,7 @@ export default async function Home() {
                     </div>
                     <div>
                       <h4 className="font-bold text-lg mb-1">Ubicación</h4>
-                      <p className="text-stone-400 font-light leading-relaxed">Toluca de Lerdo, Estado de México.<br/>(Dirección completa al agendar cita)</p>
+                      <p className="text-stone-400 font-light leading-relaxed whitespace-pre-line">{ubicacionInfo.direccion}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -291,7 +301,7 @@ export default async function Home() {
                     </div>
                     <div>
                       <h4 className="font-bold text-lg mb-1">Horario de Atención</h4>
-                      <p className="text-stone-400 font-light leading-relaxed">Lunes a Viernes: 9:00 am - 6:00 pm<br/>Sábados: Previa cita</p>
+                      <p className="text-stone-400 font-light leading-relaxed whitespace-pre-line">{ubicacionInfo.horario}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -302,7 +312,7 @@ export default async function Home() {
                       <h4 className="font-bold text-lg mb-1">Contacto</h4>
                       <p className="text-stone-400 font-light leading-relaxed">
                         WhatsApp: {config.whatsapp ? `+${config.whatsapp}` : 'No disponible'}<br/>
-                        IG: @lr_fisderm
+                        IG: @{especialistaInfo.instagram.replace('@', '')}
                       </p>
                     </div>
                   </div>

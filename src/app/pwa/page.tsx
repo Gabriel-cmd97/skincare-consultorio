@@ -172,12 +172,20 @@ function VistaInicio({ tips, loading, filter, setFilter, filtroEtiqueta, setFilt
               {item.imagen_url && (
                 <div className="aspect-[4/3] relative overflow-hidden">
                   <img src={item.imagen_url} alt={item.titulo} className="w-full h-full object-cover" />
+                  {/* Botón de play solo para rutinas con video */}
+                  {item.tipo === 'rutina' && item.video_url && (
+                    <a href={item.video_url} target="_blank" rel="noreferrer" className="absolute inset-0 flex items-center justify-center bg-black/25 active:bg-black/40 transition">
+                      <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
+                        <svg className="w-7 h-7 text-primary-700 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                      </div>
+                    </a>
+                  )}
                 </div>
               )}
               <div className="p-6 space-y-2">
                 <div className="flex gap-2 items-center mb-1">
                   <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest ${item.tipo === 'rutina' ? 'bg-amber-100 text-amber-700' : 'bg-primary-100 text-primary-700'}`}>
-                    {item.tipo}
+                    {item.tipo === 'rutina' ? '🎬 Rutina' : '💡 Tip'}
                   </span>
                   {item.etiqueta && item.etiqueta !== 'General' && (
                     <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-stone-100 text-stone-600">
@@ -187,6 +195,15 @@ function VistaInicio({ tips, loading, filter, setFilter, filtroEtiqueta, setFilt
                 </div>
                 <h3 className="text-xl font-serif font-bold text-primary-900">{item.titulo}</h3>
                 <p className="text-primary-700/80 text-sm leading-relaxed whitespace-pre-line">{item.contenido}</p>
+                {/* Link de video si es rutina sin imagen */}
+                {item.tipo === 'rutina' && item.video_url && !item.imagen_url && (
+                  <a href={item.video_url} target="_blank" rel="noreferrer" className="mt-3 flex items-center gap-2 text-primary-600 font-bold text-sm active:text-primary-800 transition">
+                    <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
+                      <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                    Ver video de la rutina →
+                  </a>
+                )}
               </div>
             </div>
           ))}

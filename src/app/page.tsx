@@ -318,13 +318,24 @@ export default async function Home() {
                   </div>
                 </div>
               </div>
-              <div className="h-[400px] bg-stone-800 rounded-[40px] border border-white/10 overflow-hidden flex items-center justify-center relative">
-                {/* Placeholder para un mapa de Google real en el futuro */}
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&q=80')] bg-cover bg-center opacity-30 mix-blend-overlay"></div>
-                <div className="relative z-10 text-center space-y-4 p-8">
-                  <MapPin className="w-12 h-12 text-white/50 mx-auto" />
-                  <p className="font-serif text-2xl font-bold text-white/80">Toluca, Edo. Méx</p>
-                </div>
+              <div className="h-[400px] bg-stone-800 rounded-[40px] border border-white/10 overflow-hidden relative shadow-2xl">
+                {ubicacionInfo.googleMapsUrl ? (
+                  <iframe 
+                    src={ubicacionInfo.googleMapsUrl} 
+                    className="w-full h-full border-0 grayscale invert brightness-90 contrast-90" 
+                    allowFullScreen 
+                    loading="lazy" 
+                    referrerPolicy="no-referrer-when-downgrade"
+                  ></iframe>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center relative">
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&q=80')] bg-cover bg-center opacity-30 mix-blend-overlay"></div>
+                    <div className="relative z-10 text-center space-y-4 p-8">
+                      <MapPin className="w-12 h-12 text-white/50 mx-auto" />
+                      <p className="font-serif text-2xl font-bold text-white/80">Toluca, Edo. Méx</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

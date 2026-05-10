@@ -251,6 +251,11 @@ export default function ConfigPage() {
                   <label className="block text-xs font-bold text-primary-500 uppercase mb-1">Horario de Atención</label>
                   <input type="text" value={ubicacionInfo.horario} onChange={e => setUbicacionInfo({...ubicacionInfo, horario: e.target.value})} className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500" placeholder="Ej: Lunes a Viernes 9am - 6pm" />
                 </div>
+                <div>
+                  <label className="block text-xs font-bold text-primary-500 uppercase mb-1">Google Maps Embed URL</label>
+                  <input type="text" value={ubicacionInfo.googleMapsUrl} onChange={e => setUbicacionInfo({...ubicacionInfo, googleMapsUrl: e.target.value})} className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500" placeholder="https://www.google.com/maps/embed?pb=..." />
+                  <p className="text-[10px] text-primary-400 mt-1 italic">Para obtenerlo: Google Maps > Compartir > Incorporar un mapa > Copia solo el contenido de <b>src="..."</b></p>
+                </div>
               </div>
             </div>
           )}

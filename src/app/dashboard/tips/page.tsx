@@ -132,36 +132,52 @@ export default function TipsPage() {
             </div>
           ) : (
             tipsFiltrados.map((tip) => (
-              <div key={tip.id} className="bg-white p-6 rounded-3xl border border-primary-100 shadow-sm hover:shadow-md transition group">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex gap-2">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${tip.tipo === 'rutina' ? 'bg-amber-100 text-amber-700' : 'bg-primary-100 text-primary-700'}`}>
-                      {tip.tipo}
-                    </span>
-                    {tip.etiqueta && tip.etiqueta !== 'General' && (
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-stone-100 text-stone-600">
-                        {tip.etiqueta}
-                      </span>
+              <div key={tip.id} className="bg-white rounded-3xl border border-primary-100 shadow-sm hover:shadow-md transition group overflow-hidden">
+                {/* Imagen con overlay de video si es rutina */}
+                {tip.imagen_url && (
+                  <div className="aspect-video relative overflow-hidden">
+                    <img src={tip.imagen_url} alt={tip.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    {tip.tipo === 'rutina' && tip.video_url && (
+                      <a href={tip.video_url} target="_blank" rel="noreferrer" className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition">
+                        <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
+                          <svg className="w-6 h-6 text-primary-700 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                      </a>
                     )}
                   </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                  <button onClick={() => { setEditingTip(tip); setShowModal(true); }} className="text-primary-400 hover:text-primary-600">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                  </button>
-                  <button onClick={() => handleDelete(tip.id)} className="text-red-300 hover:text-red-500">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                  </button>
+                )}
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex gap-2 flex-wrap">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${tip.tipo === 'rutina' ? 'bg-amber-100 text-amber-700' : 'bg-primary-100 text-primary-700'}`}>
+                        {tip.tipo === 'rutina' ? '🎬 Rutina' : '💡 Tip'}
+                      </span>
+                      {tip.etiqueta && tip.etiqueta !== 'General' && (
+                        <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-stone-100 text-stone-600">{tip.etiqueta}</span>
+                      )}
+                    </div>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                      <button onClick={() => { setEditingTip(tip); setShowModal(true); }} className="text-primary-400 hover:text-primary-600">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                      </button>
+                      <button onClick={() => handleDelete(tip.id)} className="text-red-300 hover:text-red-500">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-serif font-bold text-primary-900 mb-2">{tip.titulo}</h3>
+                  <p className="text-primary-600 text-sm line-clamp-3">{tip.contenido}</p>
+                  {tip.tipo === 'rutina' && tip.video_url && !tip.imagen_url && (
+                    <a href={tip.video_url} target="_blank" rel="noreferrer" className="mt-4 flex items-center gap-2 text-primary-600 font-bold text-sm hover:text-primary-800 transition">
+                      <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                      </div>
+                      Ver video de la rutina
+                    </a>
+                  )}
                 </div>
               </div>
-              <h3 className="text-xl font-serif font-bold text-primary-900 mb-2">{tip.titulo}</h3>
-              <p className="text-primary-700 text-sm line-clamp-3 mb-4">{tip.contenido}</p>
-              {tip.imagen_url && (
-                <div className="aspect-video rounded-2xl overflow-hidden border border-primary-50">
-                  <img src={tip.imagen_url} alt={tip.titulo} className="w-full h-full object-cover" />
-                </div>
-              )}
-            </div>
-          ))
+            ))
         )}
         </div>
       )}
@@ -222,28 +238,34 @@ export default function TipsPage() {
                   placeholder="Describe los pasos o el consejo..."
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-primary-900 uppercase">URL de Imagen (Opcional)</label>
-                  <input 
-                    type="text" 
-                    value={editingTip?.imagen_url || ''} 
-                    onChange={(e) => setEditingTip({ ...editingTip, imagen_url: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="https://..."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-primary-900 uppercase">URL de Video (Opcional)</label>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-primary-900 uppercase">URL de Imagen <span className="text-primary-400 font-normal normal-case">(portada — Instagram u otra)</span></label>
+                <input 
+                  type="text" 
+                  value={editingTip?.imagen_url || ''} 
+                  onChange={(e) => setEditingTip({ ...editingTip, imagen_url: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="https://instagram.com/p/... o link directo de imagen"
+                />
+              </div>
+
+              {/* Campo de video: SOLO para rutinas */}
+              {editingTip?.tipo === 'rutina' && (
+                <div className="space-y-2 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                  <label className="text-sm font-bold text-amber-800 uppercase flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    URL del Video de la Rutina
+                  </label>
                   <input 
                     type="text" 
                     value={editingTip?.video_url || ''} 
                     onChange={(e) => setEditingTip({ ...editingTip, video_url: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="https://..."
+                    className="w-full p-3 rounded-xl border border-amber-200 outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                    placeholder="https://www.instagram.com/reel/..."
                   />
+                  <p className="text-xs text-amber-600 italic">Pega el link del Reel o video de Instagram que muestra cómo hacer la rutina.</p>
                 </div>
-              </div>
+              )}
               <div className="pt-4 flex gap-4">
                 <button type="submit" className="flex-1 bg-primary-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-primary-700 transition">
                   Guardar

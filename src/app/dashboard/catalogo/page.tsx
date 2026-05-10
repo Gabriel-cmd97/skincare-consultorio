@@ -31,7 +31,6 @@ export default function CatalogoAdminPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Producto | null>(null);
   
-  // Formulario
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -40,6 +39,8 @@ export default function CatalogoAdminPage() {
     categoria: 'Skincare',
     stripe_link: ''
   });
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchProductos();
@@ -54,6 +55,29 @@ export default function CatalogoAdminPage() {
     
     if (data) setProductos(data);
     setLoading(false);
+  }
+
+  async function handleImageUpload(file: File) {
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const fileName = `producto_${Date.now()}.${ext}`;
+      const { error: upError } = await supabase.storage
+        .from('catalogo')
+        .upload(fileName, file, { upsert: true, contentType: file.type });
+      if (upError) throw upError;
+
+      const { data: urlData } = supabase.storage
+        .from('catalogo')
+        .getPublicUrl(fileName);
+      setFormData(prev => ({ ...prev, imagen_url: urlData.publicUrl }));
+    } catch (err) {
+      console.error('Error subiendo imagen:', err);
+      alert('No se pudo subir la imagen. Verifica que el bucket "catalogo" exista en Supabase Storage.');
+    } finally {
+      setUploadingImage(false);
+    }
   }
 
   const handleOpenModal = (producto?: Producto) => {
@@ -278,17 +302,51 @@ export default function CatalogoAdminPage() {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-primary-400 uppercase ml-1">URL de Imagen</label>
-                  <div className="relative">
-                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-300" />
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-primary-400 uppercase ml-1">Imagen del Producto</label>
+                  
+                  {/* Preview de la imagen actual */}
+                  {formData.imagen_url && (
+                    <div className="relative w-full aspect-video bg-primary-50 rounded-2xl overflow-hidden mb-3 border border-primary-100">
+                      <img src={formData.imagen_url} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, imagen_url: ''})}
+                        className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-red-600 transition"
+                      >✕</button>
+                    </div>
+                  )}
+
+                  {/* Zona de arrastre / click para subir */}
+                  <div
+                    className={`relative border-2 border-dashed rounded-2xl transition-all cursor-pointer ${
+                      uploadingImage ? 'border-primary-400 bg-primary-50 animate-pulse' : 'border-primary-200 hover:border-primary-400 hover:bg-primary-50/50 bg-white'
+                    }`}
+                    onClick={() => !uploadingImage && fileInputRef.current?.click()}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const file = e.dataTransfer.files[0];
+                      if (file && file.type.startsWith('image/')) handleImageUpload(file);
+                    }}
+                  >
                     <input
-                      type="url"
-                      className="w-full pl-12 pr-4 py-3 bg-primary-50 rounded-2xl border-none focus:ring-2 focus:ring-primary-400 outline-none transition"
-                      placeholder="https://images.unsplash.com/..."
-                      value={formData.imagen_url}
-                      onChange={(e) => setFormData({...formData, imagen_url: e.target.value})}
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageUpload(file);
+                      }}
                     />
+                    <div className="flex flex-col items-center justify-center py-6 gap-2 text-primary-400">
+                      {uploadingImage ? (
+                        <><Loader2 className="w-8 h-8 animate-spin text-primary-500" /><p className="text-sm font-bold text-primary-500">Subiendo imagen...</p></>
+                      ) : (
+                        <><ImageIcon className="w-8 h-8" /><p className="text-sm font-semibold">{formData.imagen_url ? 'Cambiar imagen' : 'Arrastra una foto o haz clic aquí'}</p><p className="text-xs">JPG, PNG, WEBP · Máx. 5MB</p></>
+                      )}
+                    </div>
                   </div>
                 </div>
 

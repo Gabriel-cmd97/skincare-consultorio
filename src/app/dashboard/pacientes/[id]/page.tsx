@@ -127,21 +127,37 @@ export default function ExpedientePage() {
     e.preventDefault();
     setSaving(true);
     
-    // Aquí actualizamos el estado local (idealmente también se guardaría en DB)
-    const updatedPaciente = {
-      ...paciente,
+    const protocolArray = evalData.protocolo.split('\n').filter((p: string) => p.trim() !== '');
+    
+    const updatePayload = {
       fototipo: evalData.fototipo,
       hidratacion: evalData.hidratacion,
       elasticidad: evalData.elasticidad,
       sensibilidad: evalData.sensibilidad,
       objetivo: evalData.objetivo,
       tratamiento: evalData.tratamiento,
-      protocolo: evalData.protocolo.split('\n').filter((p: string) => p.trim() !== '')
+      protocolo: protocolArray
     };
 
-    setPaciente(updatedPaciente);
-    setIsEvalModalOpen(false);
-    setSaving(false);
+    try {
+      const { error } = await supabase
+        .from('pacientes')
+        .update(updatePayload as any)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setPaciente({
+        ...paciente,
+        ...updatePayload
+      });
+      setIsEvalModalOpen(false);
+    } catch (err) {
+      console.error('Error al guardar la evaluación:', err);
+      alert('Hubo un error al guardar los cambios en la base de datos.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSaveNotas = async () => {

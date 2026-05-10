@@ -9,9 +9,14 @@ interface Tip {
   titulo: string;
   contenido: string;
   tipo: 'tip' | 'rutina';
+  etiqueta?: string;
   imagen_url?: string;
   video_url?: string;
 }
+
+const ETIQUETAS_OPCIONES = [
+  'General', 'Piel Grasa', 'Piel Seca', 'Piel Mixta', 'Acné', 'Rosácea', 'Manchas', 'Anti-edad'
+];
 
 type Vista = 'inicio' | 'citas' | 'tienda' | 'perfil';
 
@@ -22,6 +27,7 @@ const TIPS_FICTICIOS: Tip[] = [
     titulo: 'Rutina de Hidratación Nocturna',
     contenido: '1. Limpia tu rostro con gel suave.\n2. Aplica tónico sin alcohol.\n3. Sérum de ácido hialurónico.\n4. Crema hidratante de barrera.\n5. Aceite facial sellador.',
     tipo: 'rutina',
+    etiqueta: 'Piel Seca',
     imagen_url: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&q=80',
   },
 ];
@@ -100,16 +106,22 @@ function VistaLogin({ onLogin }: { onLogin: (paciente: any) => void }) {
   );
 }
 
-function VistaInicio({ tips, loading, filter, setFilter }: {
+function VistaInicio({ tips, loading, filter, setFilter, filtroEtiqueta, setFiltroEtiqueta }: {
   tips: Tip[];
   loading: boolean;
   filter: 'todos' | 'tip' | 'rutina';
   setFilter: (f: 'todos' | 'tip' | 'rutina') => void;
+  filtroEtiqueta: string;
+  setFiltroEtiqueta: (e: string) => void;
 }) {
-  const filtrados = filter === 'todos' ? tips : tips.filter(t => t.tipo === filter);
+  const filtrados = tips.filter(t => {
+    const matchTipo = filter === 'todos' || t.tipo === filter;
+    const matchEtiqueta = filtroEtiqueta === 'Todas' || t.etiqueta === filtroEtiqueta;
+    return matchTipo && matchEtiqueta;
+  });
 
   return (
-    <main className="px-5 pt-6 pb-4 space-y-6">
+    <main className="px-5 pt-6 pb-4 space-y-4">
       <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
         {(['todos', 'rutina', 'tip'] as const).map((f) => (
           <button
@@ -122,6 +134,28 @@ function VistaInicio({ tips, loading, filter, setFilter }: {
             }`}
           >
             {f === 'tip' ? '✨ Tips' : f === 'rutina' ? '🌿 Rutinas' : 'Todo'}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <button
+          onClick={() => setFiltroEtiqueta('Todas')}
+          className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest whitespace-nowrap transition-colors ${
+            filtroEtiqueta === 'Todas' ? 'bg-primary-900 text-white shadow-md' : 'bg-primary-50 text-primary-400 border border-primary-100'
+          }`}
+        >
+          Todas
+        </button>
+        {ETIQUETAS_OPCIONES.map((tag) => (
+          <button
+            key={tag}
+            onClick={() => setFiltroEtiqueta(tag)}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest whitespace-nowrap transition-colors ${
+              filtroEtiqueta === tag ? 'bg-primary-900 text-white shadow-md' : 'bg-primary-50 text-primary-400 border border-primary-100'
+            }`}
+          >
+            {tag}
           </button>
         ))}
       </div>
@@ -141,6 +175,16 @@ function VistaInicio({ tips, loading, filter, setFilter }: {
                 </div>
               )}
               <div className="p-6 space-y-2">
+                <div className="flex gap-2 items-center mb-1">
+                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest ${item.tipo === 'rutina' ? 'bg-amber-100 text-amber-700' : 'bg-primary-100 text-primary-700'}`}>
+                    {item.tipo}
+                  </span>
+                  {item.etiqueta && item.etiqueta !== 'General' && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-stone-100 text-stone-600">
+                      {item.etiqueta}
+                    </span>
+                  )}
+                </div>
                 <h3 className="text-xl font-serif font-bold text-primary-900">{item.titulo}</h3>
                 <p className="text-primary-700/80 text-sm leading-relaxed whitespace-pre-line">{item.contenido}</p>
               </div>
@@ -309,6 +353,7 @@ export default function PWAPage() {
   const [loading, setLoading] = useState(true);
   const [loadingProds, setLoadingProds] = useState(true);
   const [filter, setFilter] = useState<'todos' | 'tip' | 'rutina'>('todos');
+  const [filtroEtiqueta, setFiltroEtiqueta] = useState<string>('Todas');
   const [vista, setVista] = useState<Vista>('inicio');
   const [checking, setChecking] = useState(true);
 
@@ -386,7 +431,7 @@ export default function PWAPage() {
         </div>
       </header>
 
-      {vista === 'inicio' && <VistaInicio tips={content} loading={loading} filter={filter} setFilter={setFilter} />}
+      {vista === 'inicio' && <VistaInicio tips={content} loading={loading} filter={filter} setFilter={setFilter} filtroEtiqueta={filtroEtiqueta} setFiltroEtiqueta={setFiltroEtiqueta} />}
       {vista === 'tienda' && <VistaTienda productos={productos} loading={loadingProds} whatsappNumber={whatsapp} />}
       {vista === 'perfil' && <VistaPerfil paciente={paciente} onLogout={handleLogout} />}
 

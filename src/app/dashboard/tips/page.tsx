@@ -159,9 +159,10 @@ export default function TipsPage() {
                 <div className="aspect-video rounded-2xl overflow-hidden border border-primary-50">
                   <img src={tip.imagen_url} alt={tip.titulo} className="w-full h-full object-cover" />
                 </div>
-              </div>
-            ))
-          )}
+              )}
+            </div>
+          ))
+        )}
         </div>
       )}
 

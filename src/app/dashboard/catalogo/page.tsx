@@ -40,6 +40,7 @@ export default function CatalogoAdminPage() {
     stripe_link: ''
   });
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageMode, setImageMode] = useState<'upload' | 'url'>('upload');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -305,49 +306,56 @@ export default function CatalogoAdminPage() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-primary-400 uppercase ml-1">Imagen del Producto</label>
                   
-                  {/* Preview de la imagen actual */}
+                  {/* Preview */}
                   {formData.imagen_url && (
-                    <div className="relative w-full aspect-video bg-primary-50 rounded-2xl overflow-hidden mb-3 border border-primary-100">
+                    <div className="relative w-full aspect-video bg-primary-50 rounded-2xl overflow-hidden mb-2 border border-primary-100">
                       <img src={formData.imagen_url} alt="Preview" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => setFormData({...formData, imagen_url: ''})}
-                        className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-red-600 transition"
-                      >✕</button>
+                      <button type="button" onClick={() => setFormData({...formData, imagen_url: ''})} className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-red-600 transition">✕</button>
                     </div>
                   )}
 
-                  {/* Zona de arrastre / click para subir */}
-                  <div
-                    className={`relative border-2 border-dashed rounded-2xl transition-all cursor-pointer ${
-                      uploadingImage ? 'border-primary-400 bg-primary-50 animate-pulse' : 'border-primary-200 hover:border-primary-400 hover:bg-primary-50/50 bg-white'
-                    }`}
-                    onClick={() => !uploadingImage && fileInputRef.current?.click()}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const file = e.dataTransfer.files[0];
-                      if (file && file.type.startsWith('image/')) handleImageUpload(file);
-                    }}
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleImageUpload(file);
-                      }}
-                    />
-                    <div className="flex flex-col items-center justify-center py-6 gap-2 text-primary-400">
-                      {uploadingImage ? (
-                        <><Loader2 className="w-8 h-8 animate-spin text-primary-500" /><p className="text-sm font-bold text-primary-500">Subiendo imagen...</p></>
-                      ) : (
-                        <><ImageIcon className="w-8 h-8" /><p className="text-sm font-semibold">{formData.imagen_url ? 'Cambiar imagen' : 'Arrastra una foto o haz clic aquí'}</p><p className="text-xs">JPG, PNG, WEBP · Máx. 5MB</p></>
-                      )}
-                    </div>
+                  {/* Tabs */}
+                  <div className="flex rounded-2xl bg-primary-50 p-1 gap-1 mb-2">
+                    <button type="button" onClick={() => setImageMode('upload')} className={`flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${imageMode === 'upload' ? 'bg-white text-primary-900 shadow-sm' : 'text-primary-400 hover:text-primary-600'}`}>
+                      <ImageIcon className="w-3.5 h-3.5" /> Subir Foto
+                    </button>
+                    <button type="button" onClick={() => setImageMode('url')} className={`flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${imageMode === 'url' ? 'bg-white text-primary-900 shadow-sm' : 'text-primary-400 hover:text-primary-600'}`}>
+                      <ExternalLink className="w-3.5 h-3.5" /> Pegar URL
+                    </button>
                   </div>
+
+                  {/* Upload zone */}
+                  {imageMode === 'upload' && (
+                    <div
+                      className={`border-2 border-dashed rounded-2xl transition-all cursor-pointer ${uploadingImage ? 'border-primary-400 bg-primary-50 animate-pulse' : 'border-primary-200 hover:border-primary-400 hover:bg-primary-50/50'}`}
+                      onClick={() => !uploadingImage && fileInputRef.current?.click()}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file?.type.startsWith('image/')) handleImageUpload(file); }}
+                    >
+                      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} />
+                      <div className="flex flex-col items-center justify-center py-6 gap-2 text-primary-400">
+                        {uploadingImage ? (
+                          <><Loader2 className="w-8 h-8 animate-spin text-primary-500" /><p className="text-sm font-bold text-primary-500">Subiendo imagen...</p></>
+                        ) : (
+                          <><ImageIcon className="w-8 h-8" /><p className="text-sm font-semibold">{formData.imagen_url ? 'Cambiar imagen' : 'Arrastra una foto o haz clic aquí'}</p><p className="text-xs">JPG, PNG, WEBP · Máx. 5MB</p></>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* URL input */}
+                  {imageMode === 'url' && (
+                    <div className="space-y-1">
+                      <input
+                        type="url"
+                        className="w-full px-4 py-3 bg-primary-50 rounded-2xl border-none focus:ring-2 focus:ring-primary-400 outline-none transition text-sm"
+                        placeholder="https://instagram.com/... o cualquier URL de imagen"
+                        value={formData.imagen_url}
+                        onChange={(e) => setFormData({...formData, imagen_url: e.target.value})}
+                      />
+                      <p className="text-[10px] text-primary-400 italic ml-1">💡 Puedes pegar el link directo de cualquier imagen de Instagram, Unsplash, etc.</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-1">

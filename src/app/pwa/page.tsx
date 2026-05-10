@@ -462,12 +462,29 @@ export default function PWAPage() {
 
   useEffect(() => {
     const saved = localStorage.getItem('pwa_paciente');
-    if (saved) setPaciente(JSON.parse(saved));
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setPaciente(parsed);
+      // Re-fetch data to sync with latest changes from dashboard
+      reFetchPaciente(parsed.id);
+    }
     setChecking(false);
     fetchContent();
     fetchProductos();
     fetchConfig();
   }, []);
+
+  async function reFetchPaciente(id: string) {
+    try {
+      const { data, error } = await supabase.from('pacientes').select('*').eq('id', id).single();
+      if (!error && data) {
+        setPaciente(data);
+        localStorage.setItem('pwa_paciente', JSON.stringify(data));
+      }
+    } catch (err) {
+      console.error('Error al sincronizar datos del paciente:', err);
+    }
+  }
 
   async function fetchConfig() {
     try {

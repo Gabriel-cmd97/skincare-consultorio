@@ -8,15 +8,21 @@ interface Tip {
   titulo: string;
   contenido: string;
   tipo: 'tip' | 'rutina';
+  etiqueta?: string;
   imagen_url?: string;
   video_url?: string;
 }
+
+const ETIQUETAS_OPCIONES = [
+  'General', 'Piel Grasa', 'Piel Seca', 'Piel Mixta', 'Acné', 'Rosácea', 'Manchas', 'Anti-edad'
+];
 
 export default function TipsPage() {
   const [tips, setTips] = useState<Tip[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingTip, setEditingTip] = useState<Partial<Tip> | null>(null);
+  const [filtroEtiqueta, setFiltroEtiqueta] = useState<string>('Todas');
 
   useEffect(() => {
     fetchTips();
@@ -73,6 +79,10 @@ export default function TipsPage() {
     }
   }
 
+  const tipsFiltrados = tips.filter(tip => 
+    filtroEtiqueta === 'Todas' ? true : tip.etiqueta === filtroEtiqueta
+  );
+
   return (
     <div className="space-y-8">
       <header className="flex justify-between items-center">
@@ -81,7 +91,7 @@ export default function TipsPage() {
           <p className="text-primary-600">Crea contenido educativo para tus pacientes en la PWA.</p>
         </div>
         <button 
-          onClick={() => { setEditingTip({ tipo: 'tip' }); setShowModal(true); }}
+          onClick={() => { setEditingTip({ tipo: 'tip', etiqueta: 'General' }); setShowModal(true); }}
           className="bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition flex items-center gap-2"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
@@ -89,17 +99,52 @@ export default function TipsPage() {
         </button>
       </header>
 
+      {/* Filtros de Etiquetas */}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <button
+          onClick={() => setFiltroEtiqueta('Todas')}
+          className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest whitespace-nowrap transition-colors ${
+            filtroEtiqueta === 'Todas' ? 'bg-primary-900 text-white' : 'bg-white text-primary-400 border border-primary-100 hover:bg-primary-50'
+          }`}
+        >
+          Todas
+        </button>
+        {ETIQUETAS_OPCIONES.map((tag) => (
+          <button
+            key={tag}
+            onClick={() => setFiltroEtiqueta(tag)}
+            className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest whitespace-nowrap transition-colors ${
+              filtroEtiqueta === tag ? 'bg-primary-900 text-white' : 'bg-white text-primary-400 border border-primary-100 hover:bg-primary-50'
+            }`}
+          >
+            {tag}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <div className="text-center py-20 text-primary-300">Cargando contenido...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tips.map((tip) => (
-            <div key={tip.id} className="bg-white p-6 rounded-3xl border border-primary-100 shadow-sm hover:shadow-md transition group">
-              <div className="flex justify-between items-start mb-4">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${tip.tipo === 'rutina' ? 'bg-amber-100 text-amber-700' : 'bg-primary-100 text-primary-700'}`}>
-                  {tip.tipo}
-                </span>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+          {tipsFiltrados.length === 0 ? (
+            <div className="col-span-full py-12 text-center bg-white rounded-3xl border border-primary-50 shadow-sm">
+              <p className="text-primary-400 font-medium">No hay contenido con esta etiqueta.</p>
+            </div>
+          ) : (
+            tipsFiltrados.map((tip) => (
+              <div key={tip.id} className="bg-white p-6 rounded-3xl border border-primary-100 shadow-sm hover:shadow-md transition group">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex gap-2">
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${tip.tipo === 'rutina' ? 'bg-amber-100 text-amber-700' : 'bg-primary-100 text-primary-700'}`}>
+                      {tip.tipo}
+                    </span>
+                    {tip.etiqueta && tip.etiqueta !== 'General' && (
+                      <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-stone-100 text-stone-600">
+                        {tip.etiqueta}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
                   <button onClick={() => { setEditingTip(tip); setShowModal(true); }} className="text-primary-400 hover:text-primary-600">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                   </button>
@@ -114,9 +159,9 @@ export default function TipsPage() {
                 <div className="aspect-video rounded-2xl overflow-hidden border border-primary-50">
                   <img src={tip.imagen_url} alt={tip.titulo} className="w-full h-full object-cover" />
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            ))
+          )}
         </div>
       )}
 
@@ -144,15 +189,27 @@ export default function TipsPage() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-primary-900 uppercase">Título</label>
-                  <input 
-                    type="text" 
-                    value={editingTip?.titulo || ''} 
-                    onChange={(e) => setEditingTip({ ...editingTip, titulo: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="Ej: Rutina de Mañana"
-                  />
+                  <label className="text-sm font-bold text-primary-900 uppercase">Categoría / Piel</label>
+                  <select 
+                    value={editingTip?.etiqueta || 'General'} 
+                    onChange={(e) => setEditingTip({ ...editingTip, etiqueta: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                  >
+                    {ETIQUETAS_OPCIONES.map(tag => (
+                      <option key={tag} value={tag}>{tag}</option>
+                    ))}
+                  </select>
                 </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-primary-900 uppercase">Título</label>
+                <input 
+                  type="text" 
+                  value={editingTip?.titulo || ''} 
+                  onChange={(e) => setEditingTip({ ...editingTip, titulo: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Ej: Rutina de Mañana"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-primary-900 uppercase">Contenido</label>

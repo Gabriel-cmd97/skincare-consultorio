@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/utils/supabase';
-import { Loader2, User, Key, ArrowRight, LogOut, Instagram, Camera, Tag, Image as ImageIcon } from 'lucide-react';
+import { Loader2, User, Key, ArrowRight, LogOut, Instagram, Camera, Tag, Image as ImageIcon, CheckCircle2, Circle, Bell, BellRing } from 'lucide-react';
 
 interface Tip {
   id: string;
@@ -200,6 +200,52 @@ function VistaPerfil({ paciente, onLogout }: { paciente: any, onLogout: () => vo
   const [fotoUrl, setFotoUrl] = useState<string | null>(paciente.foto_url || null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const hoy = new Date().toISOString().split('T')[0];
+  const storageKey = `rutina_${paciente.id}_${hoy}`;
+  const [checkedSteps, setCheckedSteps] = useState<boolean[]>([]);
+  const [remindersEnabled, setRemindersEnabled] = useState(false);
+
+  useEffect(() => {
+    // Inicializar Checklist
+    if (paciente.protocolo) {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        setCheckedSteps(JSON.parse(saved));
+      } else {
+        setCheckedSteps(new Array(paciente.protocolo.length).fill(false));
+      }
+    }
+    
+    // Inicializar Notificaciones
+    if ('Notification' in window) {
+      setRemindersEnabled(Notification.permission === 'granted');
+    }
+  }, [paciente.id, paciente.protocolo, hoy, storageKey]);
+
+  const toggleStep = (index: number) => {
+    const newChecked = [...checkedSteps];
+    newChecked[index] = !newChecked[index];
+    setCheckedSteps(newChecked);
+    localStorage.setItem(storageKey, JSON.stringify(newChecked));
+  };
+
+  const handleEnableReminders = async () => {
+    if (!('Notification' in window)) {
+      alert('Tu navegador no soporta notificaciones web. Intenta desde Chrome o Safari actualizado.');
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      setRemindersEnabled(true);
+      new Notification('¡Alertas Activadas!', {
+        body: 'Te recordaremos hacer tu rutina de Skincare todos los días.',
+        icon: '/icon-192x192.png' // Icono genérico asumiendo PWA standard
+      });
+    } else {
+      alert('Necesitas dar permiso en los ajustes de tu navegador para recibir alertas.');
+    }
+  };
 
   const handleFotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -268,23 +314,80 @@ function VistaPerfil({ paciente, onLogout }: { paciente: any, onLogout: () => vo
       </div>
 
       {paciente.protocolo && paciente.protocolo.length > 0 && (
-        <div className="bg-primary-900 rounded-[32px] p-8 text-white space-y-4">
-          <h3 className="font-serif font-bold text-xl">Tu Rutina</h3>
-          <p className="text-primary-300 text-xs italic border-l-2 border-primary-500 pl-3">
-            {paciente.tratamiento || 'Protocolo Personalizado'}
-          </p>
-          <ul className="space-y-4 pt-2">
-            {paciente.protocolo.map((paso: string, i: number) => (
-              <li key={i} className="flex gap-4">
-                <span className="w-6 h-6 rounded-full bg-primary-800 flex items-center justify-center text-[10px] font-bold text-primary-300 shrink-0 mt-0.5">
-                  {i + 1}
-                </span>
-                <p className="text-sm text-primary-100 leading-relaxed">{paso}</p>
-              </li>
-            ))}
+        <div className="bg-primary-900 rounded-[32px] p-8 text-white space-y-4 shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
+          
+          <div className="flex justify-between items-end relative z-10">
+            <div>
+              <h3 className="font-serif font-bold text-xl">Tu Rutina Diaria</h3>
+              <p className="text-primary-300 text-[10px] uppercase tracking-widest font-bold mt-1">
+                {paciente.tratamiento || 'Protocolo Personalizado'}
+              </p>
+            </div>
+            <div className="text-right">
+              <span className="text-2xl font-serif font-bold text-primary-200">
+                {checkedSteps.filter(Boolean).length}
+              </span>
+              <span className="text-primary-400 text-sm">/{paciente.protocolo.length}</span>
+            </div>
+          </div>
+
+          <div className="w-full bg-primary-800 h-1.5 rounded-full overflow-hidden relative z-10 mt-2 mb-6">
+            <div 
+              className="bg-primary-400 h-full transition-all duration-500 ease-out"
+              style={{ width: `${(checkedSteps.filter(Boolean).length / paciente.protocolo.length) * 100}%` }}
+            ></div>
+          </div>
+
+          <ul className="space-y-3 pt-2 relative z-10">
+            {paciente.protocolo.map((paso: string, i: number) => {
+              const isChecked = checkedSteps[i];
+              return (
+                <li 
+                  key={i} 
+                  onClick={() => toggleStep(i)}
+                  className={`flex gap-4 p-3 rounded-2xl cursor-pointer transition-all active:scale-95 border ${isChecked ? 'bg-primary-800/50 border-primary-700/50' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                >
+                  <div className="mt-0.5 shrink-0">
+                    {isChecked ? (
+                      <CheckCircle2 className="w-6 h-6 text-primary-400" />
+                    ) : (
+                      <Circle className="w-6 h-6 text-primary-300/50" />
+                    )}
+                  </div>
+                  <p className={`text-sm leading-relaxed transition-all ${isChecked ? 'text-primary-300 line-through' : 'text-primary-50 font-medium'}`}>
+                    {paso}
+                  </p>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
+
+      {/* Tarjeta de Recordatorios */}
+      <div className="bg-white rounded-[28px] p-6 border border-primary-100 shadow-sm flex items-center justify-between gap-4">
+        <div className="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center shrink-0 text-primary-600">
+          {remindersEnabled ? <BellRing className="w-6 h-6" /> : <Bell className="w-6 h-6" />}
+        </div>
+        <div className="flex-1">
+          <h3 className="font-bold text-primary-900 text-sm">Recordatorios</h3>
+          <p className="text-primary-400 text-xs mt-0.5 leading-tight">
+            {remindersEnabled ? 'Alertas diarias activadas.' : 'Activa alertas para tu rutina.'}
+          </p>
+        </div>
+        <button 
+          onClick={handleEnableReminders}
+          disabled={remindersEnabled}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${
+            remindersEnabled 
+              ? 'bg-green-50 text-green-600 border border-green-200' 
+              : 'bg-primary-900 text-white hover:bg-primary-800'
+          }`}
+        >
+          {remindersEnabled ? 'Activo' : 'Activar'}
+        </button>
+      </div>
 
       <button
         onClick={onLogout}

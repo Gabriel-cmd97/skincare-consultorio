@@ -25,19 +25,41 @@ export default async function Home() {
 
   const showServicios = config.landing_servicios !== 'false';
   const showProceso = config.landing_proceso !== 'false';
-  const showTestimonios = config.landing_testimonios === 'true'; // Default false
+  const showTestimonios = config.landing_testimonios === 'true';
   const showEspecialista = config.landing_especialista !== 'false';
   const showUbicacion = config.landing_ubicacion !== 'false';
 
+  // Contenido dinámico de cada sección
+  const defaultServicios = [
+    { titulo: 'Limpieza Profunda Clínica', descripcion: 'Extracción profesional de impurezas con aparatología y productos dermatológicos de alta gama.' },
+    { titulo: 'Peeling Químico', descripcion: 'Renovación celular intensiva para tratar manchas, marcas de acné y textura irregular.' },
+    { titulo: 'Control de Acné', descripcion: 'Protocolo clínico para desinflamar, controlar la bacteria y restaurar la barrera cutánea.' },
+    { titulo: 'Rejuvenecimiento Facial', descripcion: 'Estimulación de colágeno y elastina para mejorar la firmeza y atenuar líneas de expresión.' },
+    { titulo: 'Valoración Dermatofuncional', descripcion: 'Análisis profundo de la piel con luz de Wood para diseñar tu protocolo personalizado.' },
+    { titulo: 'Dermapen / Microneedling', descripcion: 'Terapia de inducción de colágeno para cicatrices, estrías y revitalización facial.' },
+  ];
+  const defaultPasos = [
+    { titulo: 'Valoración', descripcion: 'Análisis clínico profundo para entender las necesidades únicas de tu piel y tus objetivos.' },
+    { titulo: 'Protocolo', descripcion: 'Diseño de un plan de tratamiento en cabina combinado con una rutina para casa.' },
+    { titulo: 'Seguimiento', descripcion: 'Acompañamiento constante a través de nuestra App (PWA) para garantizar resultados.' },
+  ];
+  const defaultTestimonios = [
+    { nombre: 'Sofía R.', texto: 'El cambio en mi acné ha sido increíble. Después de años probando de todo, el enfoque clínico de LR Fisioderm fue lo único que me funcionó. Mi piel está sana.' },
+    { nombre: 'Daniela M.', texto: 'La valoración es súper completa. Me explicaron exactamente qué necesitaba mi piel y la rutina de casa es fácil de seguir desde la aplicación.' },
+    { nombre: 'Carmen T.', texto: 'Excelente atención y profesionalismo. Los tratamientos de rejuvenecimiento han mejorado muchísimo la textura de mi piel. Se nota la diferencia.' },
+  ];
+
+  let servicios = defaultServicios;
+  let pasos = defaultPasos;
+  let testimonios = defaultTestimonios;
   let especialistaInfo = { titulo: 'Lic. en Fisioterapia', descripcion: 'Con especialidad en Fisioterapia Dermatofuncional. Mi pasión es devolverle la salud y funcionalidad a tu piel a través de tratamientos con rigor científico y tecnología de vanguardia.', instagram: 'lr_fisderm' };
-  let ubicacionInfo = { direccion: 'Toluca de Lerdo, Estado de México', horario: 'Lunes a Viernes: 9:00 am - 6:00 pm\nSábados: Previa cita' };
+  let ubicacionInfo = { titulo: 'Tu clínica de confianza en Toluca', direccion: 'Toluca de Lerdo, Estado de México', horario: 'Lunes a Viernes: 9:00 am - 6:00 pm\nSábados: Previa cita', googleMapsUrl: '' };
   
-  if (config.especialista_info) {
-    try { especialistaInfo = { ...especialistaInfo, ...JSON.parse(config.especialista_info) }; } catch(e){}
-  }
-  if (config.ubicacion_info) {
-    try { ubicacionInfo = { ...ubicacionInfo, ...JSON.parse(config.ubicacion_info) }; } catch(e){}
-  }
+  if (config.servicios_content) try { servicios = JSON.parse(config.servicios_content); } catch(e){}
+  if (config.proceso_content) try { pasos = JSON.parse(config.proceso_content); } catch(e){}
+  if (config.testimonios_content) try { testimonios = JSON.parse(config.testimonios_content); } catch(e){}
+  if (config.especialista_info) try { especialistaInfo = { ...especialistaInfo, ...JSON.parse(config.especialista_info) }; } catch(e){}
+  if (config.ubicacion_info) try { ubicacionInfo = { ...ubicacionInfo, ...JSON.parse(config.ubicacion_info) }; } catch(e){}
 
   return (
     <div className="bg-white">
@@ -104,20 +126,13 @@ export default async function Home() {
               <h3 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-primary-900">Tratamientos Especializados</h3>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                { icon: <Sparkles className="w-8 h-8"/>, title: 'Limpieza Profunda Clínica', desc: 'Extracción profesional de impurezas con aparatología y productos dermatológicos de alta gama.' },
-                { icon: <Activity className="w-8 h-8"/>, title: 'Peeling Químico', desc: 'Renovación celular intensiva para tratar manchas, marcas de acné y textura irregular.' },
-                { icon: <ShieldCheck className="w-8 h-8"/>, title: 'Control de Acné', desc: 'Protocolo clínico para desinflamar, controlar la bacteria y restaurar la barrera cutánea.' },
-                { icon: <UserCircle2 className="w-8 h-8"/>, title: 'Rejuvenecimiento Facial', desc: 'Estimulación de colágeno y elastina para mejorar la firmeza y atenuar líneas de expresión.' },
-                { icon: <CheckCircle2 className="w-8 h-8"/>, title: 'Valoración Dermatofuncional', desc: 'Análisis profundo de la piel con luz de Wood para diseñar tu protocolo personalizado.' },
-                { icon: <Activity className="w-8 h-8"/>, title: 'Dermapen / Microneedling', desc: 'Terapia de inducción de colágeno para cicatrices, estrías y revitalización facial.' }
-              ].map((servicio, i) => (
+              {servicios.map((s, i) => (
                 <div key={i} className="p-8 rounded-[32px] border border-primary-100 hover:border-primary-300 hover:shadow-xl transition-all duration-300 group bg-stone-50/50 hover:bg-white">
                   <div className="w-16 h-16 bg-primary-100 text-primary-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    {servicio.icon}
+                    <Sparkles className="w-8 h-8"/>
                   </div>
-                  <h4 className="text-xl font-bold text-primary-900 mb-3">{servicio.title}</h4>
-                  <p className="text-primary-600 leading-relaxed font-light">{servicio.desc}</p>
+                  <h4 className="text-xl font-bold text-primary-900 mb-3">{s.titulo}</h4>
+                  <p className="text-primary-600 leading-relaxed font-light">{s.descripcion}</p>
                 </div>
               ))}
             </div>
@@ -138,17 +153,13 @@ export default async function Home() {
               {/* Conector visual (oculto en móvil) */}
               <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-primary-500/0 via-primary-500/50 to-primary-500/0 z-0"></div>
               
-              {[
-                { step: '01', title: 'Valoración', desc: 'Análisis clínico profundo para entender las necesidades únicas de tu piel y tus objetivos.' },
-                { step: '02', title: 'Protocolo', desc: 'Diseño de un plan de tratamiento en cabina combinado con una rutina para casa.' },
-                { step: '03', title: 'Seguimiento', desc: 'Acompañamiento constante a través de nuestra App (PWA) para garantizar resultados.' }
-              ].map((paso, i) => (
+              {pasos.map((paso, i) => (
                 <div key={i} className="relative z-10 flex flex-col items-center text-center">
                   <div className="w-24 h-24 bg-primary-800 border-4 border-primary-900 rounded-full flex items-center justify-center mb-6 shadow-xl relative">
-                    <span className="text-3xl font-serif font-bold text-primary-200">{paso.step}</span>
+                    <span className="text-3xl font-serif font-bold text-primary-200">{String(i+1).padStart(2,'0')}</span>
                   </div>
-                  <h4 className="text-2xl font-bold text-white mb-3">{paso.title}</h4>
-                  <p className="text-primary-200/80 leading-relaxed font-light px-4">{paso.desc}</p>
+                  <h4 className="text-2xl font-bold text-white mb-3">{paso.titulo}</h4>
+                  <p className="text-primary-200/80 leading-relaxed font-light px-4">{paso.descripcion}</p>
                 </div>
               ))}
             </div>
@@ -189,17 +200,13 @@ export default async function Home() {
               <h3 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-primary-900">Lo que dicen nuestros pacientes</h3>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
-              {[
-                { name: 'Sofía R.', text: 'El cambio en mi acné ha sido increíble. Después de años probando de todo, el enfoque clínico de LR Fisioderm fue lo único que me funcionó. Mi piel está sana.', rating: 5 },
-                { name: 'Daniela M.', text: 'La valoración es súper completa. Me explicaron exactamente qué necesitaba mi piel y la rutina de casa es fácil de seguir desde la aplicación.', rating: 5 },
-                { name: 'Carmen T.', text: 'Excelente atención y profesionalismo. Los tratamientos de rejuvenecimiento han mejorado muchísimo la textura de mi piel. Se nota la diferencia.', rating: 5 }
-              ].map((testimonio, i) => (
+              {testimonios.map((testimonio, i) => (
                 <div key={i} className="bg-white p-8 rounded-[32px] shadow-sm border border-primary-100 flex flex-col">
                   <div className="flex gap-1 text-amber-400 mb-6">
-                    {[...Array(testimonio.rating)].map((_, j) => <Star key={j} className="w-5 h-5 fill-current" />)}
+                    {[...Array(5)].map((_, j) => <Star key={j} className="w-5 h-5 fill-current" />)}
                   </div>
-                  <p className="text-primary-700 italic flex-1 font-light leading-relaxed mb-6">"{testimonio.text}"</p>
-                  <p className="font-bold text-primary-900">— {testimonio.name}</p>
+                  <p className="text-primary-700 italic flex-1 font-light leading-relaxed mb-6">"{testimonio.texto}"</p>
+                  <p className="font-bold text-primary-900">— {testimonio.nombre}</p>
                 </div>
               ))}
             </div>
@@ -283,7 +290,7 @@ export default async function Home() {
               <div className="space-y-8">
                 <div>
                   <h2 className="text-sm uppercase tracking-[0.3em] font-bold text-stone-400 mb-4">Visítanos</h2>
-                  <h3 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white">Tu clínica de confianza en Toluca</h3>
+                  <h3 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white">{ubicacionInfo.titulo || 'Tu clínica de confianza en Toluca'}</h3>
                 </div>
                 <div className="space-y-6">
                   <div className="flex items-start gap-4">

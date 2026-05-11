@@ -305,6 +305,11 @@ export default function ExpedientePage() {
                 <Edit3 className="w-4 h-4" />
               </button>
             </div>
+            {/* Hint PWA */}
+            <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-2xl px-3 py-2">
+              <span className="text-blue-400 text-xs mt-0.5">📱</span>
+              <p className="text-[10px] text-blue-600 leading-relaxed">El paciente ve estos datos en <strong>Mi Piel → Tu Evaluación</strong> dentro de su PWA.</p>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               {[
                 { label: 'Fototipo', value: paciente.fototipo ?? '—' },
@@ -334,6 +339,11 @@ export default function ExpedientePage() {
               >
                 <Edit3 className="w-4 h-4" />
               </button>
+            </div>
+            {/* Hint PWA */}
+            <div className="flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-2xl px-3 py-2">
+              <span className="text-amber-400 text-xs mt-0.5">✅</span>
+              <p className="text-[10px] text-amber-700 leading-relaxed">Cada paso aparece como un <strong>checklist diario</strong> en la PWA del paciente bajo <strong>"Tu Rutina Diaria"</strong>. El paciente puede marcarlos conforme los completa.</p>
             </div>
             <p className="text-xs font-bold text-primary-500 uppercase tracking-wider">{paciente.tratamiento}</p>
             <ol className="space-y-3">
@@ -515,12 +525,16 @@ export default function ExpedientePage() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-primary-400 uppercase ml-1">Pasos del Protocolo (uno por línea)</label>
+                  <div className="flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-2">
+                    <span className="text-amber-400 text-xs mt-0.5">✅</span>
+                    <p className="text-[10px] text-amber-700 leading-relaxed">Cada línea = un paso del checklist diario en la app del paciente. Escribe instrucciones claras y cortas. Ej: <em>"Aplicar sérum de Vitamina C por las mañanas"</em></p>
+                  </div>
                   <textarea
-                    rows={4}
+                    rows={5}
                     value={evalData.protocolo}
                     onChange={(e) => setEvalData({ ...evalData, protocolo: e.target.value })}
                     className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none resize-none"
-                    placeholder="Lavar rostro por la mañana&#10;Aplicar tónico hidratante&#10;Usar protector solar SPF 50"
+                    placeholder={`Lavar rostro con gel suave por la mañana\nAplicar tónico hidratante sin alcohol\nSérum Vitamina C 15% (solo AM)\nHidratante ligero sin fragancia\nProtector solar SPF 50+ (obligatorio)`}
                   />
                 </div>
               </div>

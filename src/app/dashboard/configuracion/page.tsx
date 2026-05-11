@@ -21,9 +21,7 @@ export default function ConfigPage() {
   const [landingEspecialista, setLandingEspecialista] = useState(true);
   const [landingUbicacion, setLandingUbicacion] = useState(true);
 
-  // Datos detallados de las secciones
-  const [especialistaInfo, setEspecialistaInfo] = useState({ titulo: 'Lic. en Fisioterapia', descripcion: 'Con especialidad en Fisioterapia Dermatofuncional...', instagram: 'lr_fisderm' });
-  const [ubicacionInfo, setUbicacionInfo] = useState({ direccion: 'Toluca de Lerdo, Estado de México', horario: 'Lunes a Viernes: 9:00 am - 6:00 pm', googleMapsUrl: '' });
+  // Datos detallados se editan en Landing Editor, no aquí
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -50,13 +48,7 @@ export default function ConfigPage() {
           if (configItem.clave === 'landing_testimonios') setLandingTestimonios(configItem.valor === 'true');
           if (configItem.clave === 'landing_especialista') setLandingEspecialista(configItem.valor === 'true');
           if (configItem.clave === 'landing_ubicacion') setLandingUbicacion(configItem.valor === 'true');
-          
-          if (configItem.clave === 'especialista_info' && configItem.valor) {
-            try { setEspecialistaInfo(JSON.parse(configItem.valor)); } catch(e){}
-          }
-          if (configItem.clave === 'ubicacion_info' && configItem.valor) {
-            try { setUbicacionInfo(JSON.parse(configItem.valor)); } catch(e){}
-          }
+
         });
       }
     } catch (error) {
@@ -79,8 +71,6 @@ export default function ConfigPage() {
         { clave: 'landing_testimonios', valor: String(landingTestimonios) },
         { clave: 'landing_especialista', valor: String(landingEspecialista) },
         { clave: 'landing_ubicacion', valor: String(landingUbicacion) },
-        { clave: 'especialista_info', valor: JSON.stringify(especialistaInfo) },
-        { clave: 'ubicacion_info', valor: JSON.stringify(ubicacionInfo) },
       ];
 
       for (const update of updates) {
@@ -216,49 +206,12 @@ export default function ConfigPage() {
               </label>
             ))}
           </div>
-
-          {/* Formulario de Especialista (Condicional) */}
-          {landingEspecialista && (
-            <div className="mt-6 p-6 bg-primary-50 rounded-2xl border border-primary-100 space-y-4 animate-in fade-in">
-              <h3 className="font-bold text-primary-900">Editar "Sobre la Especialista"</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-primary-500 uppercase mb-1">Título Profesional</label>
-                  <input type="text" value={especialistaInfo.titulo} onChange={e => setEspecialistaInfo({...especialistaInfo, titulo: e.target.value})} className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500" placeholder="Ej: Lic. en Fisioterapia" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-primary-500 uppercase mb-1">Descripción / Bio</label>
-                  <textarea value={especialistaInfo.descripcion} onChange={e => setEspecialistaInfo({...especialistaInfo, descripcion: e.target.value})} rows={3} className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500" placeholder="Cuenta un poco sobre ti y tu enfoque clínico..." />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-primary-500 uppercase mb-1">Usuario de Instagram (sin @)</label>
-                  <input type="text" value={especialistaInfo.instagram} onChange={e => setEspecialistaInfo({...especialistaInfo, instagram: e.target.value})} className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500" placeholder="lr_fisderm" />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Formulario de Ubicación (Condicional) */}
-          {landingUbicacion && (
-            <div className="mt-6 p-6 bg-primary-50 rounded-2xl border border-primary-100 space-y-4 animate-in fade-in">
-              <h3 className="font-bold text-primary-900">Editar "Ubicación y Contacto"</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-primary-500 uppercase mb-1">Dirección Corta</label>
-                  <input type="text" value={ubicacionInfo.direccion} onChange={e => setUbicacionInfo({...ubicacionInfo, direccion: e.target.value})} className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500" placeholder="Ej: Toluca de Lerdo, Estado de México" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-primary-500 uppercase mb-1">Horario de Atención</label>
-                  <input type="text" value={ubicacionInfo.horario} onChange={e => setUbicacionInfo({...ubicacionInfo, horario: e.target.value})} className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500" placeholder="Ej: Lunes a Viernes 9am - 6pm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-primary-500 uppercase mb-1">Google Maps Embed URL</label>
-                  <input type="text" value={ubicacionInfo.googleMapsUrl} onChange={e => setUbicacionInfo({...ubicacionInfo, googleMapsUrl: e.target.value})} className="w-full p-3 rounded-xl border border-primary-100 outline-none focus:ring-2 focus:ring-primary-500" placeholder="https://www.google.com/maps/embed?pb=..." />
-                  <p className="text-[10px] text-primary-400 mt-1 italic">Para obtenerlo: Google Maps > Compartir > Incorporar un mapa > Copia solo el contenido de <b>src="..."</b></p>
-                </div>
-              </div>
-            </div>
-          )}
+          <div className="mt-4 flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3">
+            <span className="text-blue-400 text-sm mt-0.5">📝</span>
+            <p className="text-xs text-blue-600 leading-relaxed">
+              Para editar el <strong>contenido</strong> de cada sección (textos, testimonios, mapa, etc.), ve a <a href="/dashboard/landing" className="underline font-bold hover:text-blue-800">🏠 Página Principal</a> en el menú lateral.
+            </p>
+          </div>
         </div>
 
         <div className="pt-6">

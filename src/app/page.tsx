@@ -52,14 +52,21 @@ export default async function Home() {
   let servicios = defaultServicios;
   let pasos = defaultPasos;
   let testimonios = defaultTestimonios;
+  let heroInfo = { titulo: 'Tu piel merece un enfoque clínico', subtitulo: 'Tratamientos especializados en alteraciones de la piel y tejidos en Toluca. Cuidado profesional con base científica para resultados reales.', badge: 'Especialidad en Fisioterapia Dermatofuncional' };
   let especialistaInfo = { titulo: 'Lic. en Fisioterapia', descripcion: 'Con especialidad en Fisioterapia Dermatofuncional. Mi pasión es devolverle la salud y funcionalidad a tu piel a través de tratamientos con rigor científico y tecnología de vanguardia.', instagram: 'lr_fisderm' };
-  let ubicacionInfo = { titulo: 'Tu clínica de confianza en Toluca', direccion: 'Toluca de Lerdo, Estado de México', horario: 'Lunes a Viernes: 9:00 am - 6:00 pm\nSábados: Previa cita', googleMapsUrl: '' };
+  let ubicacionInfo = { titulo: 'Tu clínica de confianza en Toluca', direccion: 'Toluca de Lerdo, Estado de México', horario: 'Lunes a Viernes: 9:00 am - 6:00 pm\\nSábados: Previa cita', googleMapsUrl: '' };
   
+  if (config.hero_info) try { heroInfo = { ...heroInfo, ...JSON.parse(config.hero_info) }; } catch(e){}
   if (config.servicios_content) try { servicios = JSON.parse(config.servicios_content); } catch(e){}
   if (config.proceso_content) try { pasos = JSON.parse(config.proceso_content); } catch(e){}
   if (config.testimonios_content) try { testimonios = JSON.parse(config.testimonios_content); } catch(e){}
   if (config.especialista_info) try { especialistaInfo = { ...especialistaInfo, ...JSON.parse(config.especialista_info) }; } catch(e){}
   if (config.ubicacion_info) try { ubicacionInfo = { ...ubicacionInfo, ...JSON.parse(config.ubicacion_info) }; } catch(e){}
+
+  // Separar título del hero para estilos (primera parte normal, segunda parte cursiva)
+  const heroParts = heroInfo.titulo.split('|');
+  const heroLine1 = heroParts[0]?.trim() || heroInfo.titulo;
+  const heroLine2 = heroParts[1]?.trim() || '';
 
   return (
     <div className="bg-white">
@@ -73,14 +80,13 @@ export default async function Home() {
           <div className="text-center lg:text-left space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-700 rounded-full text-sm font-medium tracking-wide uppercase border border-primary-100">
               <span className="w-2 h-2 bg-primary-400 rounded-full animate-pulse"></span>
-              Especialidad en Fisioterapia Dermatofuncional
+              {heroInfo.badge}
             </div>
             <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif font-bold text-primary-900 leading-[1.1]">
-              Tu piel merece un <br />
-              <span className="italic text-primary-500">enfoque clínico</span>
+              {heroLine1} {heroLine2 && <><br /><span className="italic text-primary-500">{heroLine2}</span></>}
             </h2>
             <p className="text-xl text-primary-800/70 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
-              Tratamientos especializados en alteraciones de la piel y tejidos en Toluca. Cuidado profesional con base científica para resultados reales.
+              {heroInfo.subtitulo}
             </p>
             <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-5 pt-4">
               <a href="#citas" className="w-full sm:w-auto bg-primary-600 hover:bg-primary-700 text-white font-semibold py-4 px-10 rounded-full transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 flex items-center justify-center gap-2">

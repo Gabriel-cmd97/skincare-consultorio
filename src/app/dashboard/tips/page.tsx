@@ -11,6 +11,7 @@ interface Tip {
   etiqueta?: string;
   imagen_url?: string;
   video_url?: string;
+  visible_pwa?: boolean;
 }
 
 const ETIQUETAS_OPCIONES = [
@@ -266,6 +267,24 @@ export default function TipsPage() {
                   <p className="text-xs text-amber-600 italic">Pega el link del Reel o video de Instagram que muestra cómo hacer la rutina.</p>
                 </div>
               )}
+
+              {/* Toggle visible en PWA */}
+              <label className="flex items-center gap-3 p-4 bg-primary-50 rounded-2xl border border-primary-100 cursor-pointer hover:bg-primary-100/50 transition">
+                <div className="relative inline-block w-10 h-6">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={editingTip?.visible_pwa !== false}
+                    onChange={(e) => setEditingTip({ ...editingTip, visible_pwa: e.target.checked })}
+                  />
+                  <div className="w-10 h-6 bg-primary-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-primary-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-primary-900">Visible para pacientes en la PWA</p>
+                  <p className="text-[10px] text-primary-400">Si está desactivado, solo tú podrás verlo aquí pero no aparecerá en la app del paciente.</p>
+                </div>
+              </label>
+
               <div className="pt-4 flex gap-4">
                 <button type="submit" className="flex-1 bg-primary-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-primary-700 transition">
                   Guardar

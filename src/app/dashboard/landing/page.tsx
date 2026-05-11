@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabase';
 
-type Section = 'servicios' | 'proceso' | 'testimonios' | 'especialista' | 'ubicacion';
+type Section = 'hero' | 'servicios' | 'proceso' | 'testimonios' | 'especialista' | 'ubicacion';
 
 const SECTIONS: { id: Section; label: string; emoji: string }[] = [
+  { id: 'hero', label: 'Hero', emoji: '🏠' },
   { id: 'servicios', label: 'Servicios', emoji: '✨' },
   { id: 'proceso', label: 'Proceso', emoji: '👣' },
   { id: 'testimonios', label: 'Testimonios', emoji: '⭐' },
@@ -18,7 +19,7 @@ interface PasoItem { titulo: string; descripcion: string; }
 interface TestimonioItem { nombre: string; texto: string; }
 
 export default function LandingEditorPage() {
-  const [activeTab, setActiveTab] = useState<Section>('servicios');
+  const [activeTab, setActiveTab] = useState<Section>('hero');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -152,6 +153,35 @@ export default function LandingEditorPage() {
         </div>
 
         <div className="p-8 space-y-6">
+
+          {/* ---- HERO ---- */}
+          {activeTab === 'hero' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-bold text-primary-900 mb-1">Sección Principal (Hero)</h2>
+                <p className="text-sm text-primary-400">El primer bloque que ven los visitantes al entrar a tu página web.</p>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className={labelCls}>Badge (etiqueta superior)</label>
+                  <input type="text" value={heroBadge} onChange={e => setHeroBadge(e.target.value)} className={inputCls} placeholder="Ej: Especialidad en Fisioterapia Dermatofuncional" />
+                  <p className="text-xs text-primary-400 mt-1">Texto pequeño que aparece arriba del título con un punto animado.</p>
+                </div>
+                <div>
+                  <label className={labelCls}>Título Principal</label>
+                  <input type="text" value={heroTitulo} onChange={e => setHeroTitulo(e.target.value)} className={inputCls} placeholder="Tu piel merece un | enfoque clínico" />
+                  <div className="mt-2 p-3 bg-amber-50 rounded-xl border border-amber-100 text-xs text-amber-700">
+                    <p>💡 <strong>Tip:</strong> Usa el símbolo <code className="bg-white px-1.5 py-0.5 rounded border font-bold">|</code> para separar el texto en dos líneas. La segunda parte se muestra en <em>cursiva</em> con un color más suave.</p>
+                    <p className="mt-1">Ejemplo: <strong>Tu piel merece un | enfoque clínico</strong></p>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls}>Subtítulo / Descripción</label>
+                  <textarea value={heroSubtitulo} onChange={e => setHeroSubtitulo(e.target.value)} rows={3} className={inputCls} placeholder="Tratamientos especializados en alteraciones de la piel y tejidos en Toluca..." />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ---- SERVICIOS ---- */}
           {activeTab === 'servicios' && (

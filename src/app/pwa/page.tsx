@@ -437,8 +437,8 @@ function VistaTienda({ productos, loading, whatsappNumber }: { productos: any[],
     <main className="px-5 pt-6 pb-4 space-y-6">
       <div className="bg-white rounded-[28px] p-5 border border-primary-100 shadow-sm flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-serif font-bold text-primary-900 mb-1">Productos Recomendados</h2>
-          <p className="text-[10px] text-primary-400 uppercase tracking-widest font-bold">Seleccionados por tu especialista</p>
+          <h2 className="text-lg font-serif font-bold text-primary-900 mb-1">Productos de la Clínica</h2>
+          <p className="text-[10px] text-primary-400 uppercase tracking-widest font-bold">Disponibles en LR Fisioderm</p>
         </div>
         <div className="w-10 h-10 bg-primary-50 rounded-full flex items-center justify-center text-primary-600">
           <Tag className="w-5 h-5" />
@@ -447,7 +447,7 @@ function VistaTienda({ productos, loading, whatsappNumber }: { productos: any[],
       <div className="flex items-start gap-2 bg-primary-50 border border-primary-100 rounded-2xl px-4 py-3">
         <span className="text-base">🛋️</span>
         <p className="text-[11px] text-primary-500 leading-relaxed">
-          Estos productos fueron <strong>seleccionados especialmente para tu tipo de piel</strong> por tu especialista. Al hacer clic en “Comprar” te redirigirá para completar tu pedido.
+          Estos son los productos disponibles en la clínica. <strong>Consulta con tu especialista</strong> cuál es el más adecuado para tu tipo de piel antes de comprar.
         </p>
       </div>
 

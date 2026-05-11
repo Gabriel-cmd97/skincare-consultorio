@@ -122,6 +122,13 @@ function VistaInicio({ tips, loading, filter, setFilter, filtroEtiqueta, setFilt
 
   return (
     <main className="px-5 pt-6 pb-4 space-y-4">
+      {/* Hint de sección */}
+      <div className="flex items-start gap-2 bg-primary-50 border border-primary-100 rounded-2xl px-4 py-3">
+        <span className="text-base">✨</span>
+        <p className="text-[11px] text-primary-500 leading-relaxed">
+          Aquí encontrarás <strong>rutinas y consejos de skincare</strong> preparados por tu especialista, filtrados especialmente para tu tipo de piel.
+        </p>
+      </div>
       <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
         {(['todos', 'rutina', 'tip'] as const).map((f) => (
           <button
@@ -315,6 +322,7 @@ function VistaPerfil({ paciente, onLogout }: { paciente: any, onLogout: () => vo
 
       <div className="bg-white rounded-[28px] p-6 border border-primary-100 shadow-sm space-y-4">
         <h3 className="font-bold text-primary-900 text-sm uppercase tracking-wider border-b border-primary-50 pb-2">Tu Evaluación</h3>
+        <p className="text-[10px] text-primary-400 italic leading-relaxed">Estos datos fueron registrados por tu especialista en tu última valoración clínica. Si algo no coincide, comentáselo en tu próxima cita. 👩‍⚕️</p>
         <div className="grid grid-cols-2 gap-3">
           {[
             { label: 'Fototipo', value: paciente.fototipo || '—' },
@@ -347,6 +355,14 @@ function VistaPerfil({ paciente, onLogout }: { paciente: any, onLogout: () => vo
               </span>
               <span className="text-primary-400 text-sm">/{paciente.protocolo.length}</span>
             </div>
+          </div>
+
+          {/* Hint de reinicio diario */}
+          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 relative z-10">
+            <span className="text-lg">🔄</span>
+            <p className="text-[10px] text-primary-300 leading-relaxed">
+              Esta lista <strong className="text-primary-200">se reinicia cada día</strong> para que puedas registrar tu progreso diario. ¡Marca cada paso que completes hoy!
+            </p>
           </div>
 
           <div className="w-full bg-primary-800 h-1.5 rounded-full overflow-hidden relative z-10 mt-2 mb-6">
@@ -427,6 +443,12 @@ function VistaTienda({ productos, loading, whatsappNumber }: { productos: any[],
         <div className="w-10 h-10 bg-primary-50 rounded-full flex items-center justify-center text-primary-600">
           <Tag className="w-5 h-5" />
         </div>
+      </div>
+      <div className="flex items-start gap-2 bg-primary-50 border border-primary-100 rounded-2xl px-4 py-3">
+        <span className="text-base">🛋️</span>
+        <p className="text-[11px] text-primary-500 leading-relaxed">
+          Estos productos fueron <strong>seleccionados especialmente para tu tipo de piel</strong> por tu especialista. Al hacer clic en “Comprar” te redirigirá para completar tu pedido.
+        </p>
       </div>
 
       {loading ? (

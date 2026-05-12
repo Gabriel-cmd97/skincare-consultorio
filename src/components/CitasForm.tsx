@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/utils/supabase";
 import { crearNotificacionHibrida } from "@/actions/notificaciones";
+import {
+  sanitizeText,
+  isValidPhone,
+  isValidFutureDate,
+  isValidBusinessHour,
+  checkRateLimit,
+  wasFilledTooFast,
+} from "@/utils/security";
 
 export default function CitasForm() {
   const [nombre, setNombre] = useState("");
@@ -13,30 +21,91 @@ export default function CitasForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // --- Protecciones anti-bot ---
+  const [honeypot, setHoneypot] = useState(""); // Campo trampa invisible
+  const formLoadTime = useRef(Date.now());      // Tiempo de carga del form
+
+  // Reiniciar timer cuando el componente se monta
+  useEffect(() => {
+    formLoadTime.current = Date.now();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
 
+    // ====== CAPA 1: Anti-Bot ======
+    // Si el honeypot tiene contenido, es un bot (los humanos no ven el campo)
+    if (honeypot) {
+      // Fingir éxito para no alertar al bot
+      setMessage({ type: "success", text: "¡Tu cita ha sido agendada con éxito! Te contactaremos pronto." });
+      setLoading(false);
+      return;
+    }
+
+    // Si el form se llenó en menos de 3 segundos, es un bot
+    if (wasFilledTooFast(formLoadTime.current)) {
+      setMessage({ type: "success", text: "¡Tu cita ha sido agendada con éxito! Te contactaremos pronto." });
+      setLoading(false);
+      return;
+    }
+
+    // ====== CAPA 2: Rate Limiting ======
+    // Máximo 5 citas por hora desde este navegador
+    const rateCheck = checkRateLimit('citas_form', 5, 60 * 60 * 1000);
+    if (!rateCheck.allowed) {
+      setMessage({
+        type: "error",
+        text: "Has alcanzado el límite de solicitudes. Intenta de nuevo más tarde o contáctanos por WhatsApp.",
+      });
+      setLoading(false);
+      return;
+    }
+
+    // ====== CAPA 3: Validación y sanitización ======
+    const cleanNombre = sanitizeText(nombre, 100);
+    const cleanTelefono = sanitizeText(telefono, 20);
+
+    if (cleanNombre.length < 3) {
+      setMessage({ type: "error", text: "Ingresa un nombre válido (mínimo 3 caracteres)." });
+      setLoading(false);
+      return;
+    }
+
+    if (!isValidPhone(cleanTelefono)) {
+      setMessage({ type: "error", text: "Ingresa un teléfono válido (10-15 dígitos). Ej: 722 123 4567" });
+      setLoading(false);
+      return;
+    }
+
+    if (!isValidFutureDate(fecha)) {
+      setMessage({ type: "error", text: "La fecha debe ser futura y no mayor a 6 meses." });
+      setLoading(false);
+      return;
+    }
+
+    if (!isValidBusinessHour(hora)) {
+      setMessage({ type: "error", text: "El horario de atención es de 9:00 AM a 6:00 PM." });
+      setLoading(false);
+      return;
+    }
+
     try {
       const fechaHora = new Date(`${fecha}T${hora}:00`).toISOString();
 
-      // Omitimos la verificación manual de duplicados para evitar errores de permisos (RLS).
-      // La base de datos se encargará de esto mediante el UNIQUE constraint definido en schema.sql.
-
-      // Insertar la cita
+      // Insertar la cita con datos sanitizados
       const { error: insertError } = await supabase.from("citas").insert([
         {
-          paciente_nombre: nombre,
-          paciente_email: '', // Campo ahora opcional internamente
-          paciente_telefono: telefono,
+          paciente_nombre: cleanNombre,
+          paciente_email: '',
+          paciente_telefono: cleanTelefono,
           fecha_hora: fechaHora,
-          tipo_tratamiento: tratamiento,
+          tipo_tratamiento: sanitizeText(tratamiento, 50),
         },
       ]);
 
       if (insertError) {
-        // En caso de condición de carrera, el UNIQUE constraint de la BD saltará
         if (insertError.code === '23505') {
           setMessage({
             type: "error",
@@ -54,7 +123,7 @@ export default function CitasForm() {
         // Enviar notificación al especialista
         await crearNotificacionHibrida({
           titulo: 'Nueva Cita Agendada',
-          mensaje: `El paciente ${nombre} ha agendado una cita para ${tratamiento} el día ${fecha} a las ${hora}.`,
+          mensaje: `El paciente ${cleanNombre} ha agendado una cita para ${tratamiento} el día ${fecha} a las ${hora}.`,
           tipo: 'cita',
           enlace: '/dashboard/agenda'
         });
@@ -64,6 +133,7 @@ export default function CitasForm() {
         setFecha("");
         setHora("");
         setTratamiento("Limpieza Facial");
+        formLoadTime.current = Date.now(); // Reiniciar timer
       }
     } catch (error: any) {
       console.error(error);
@@ -88,12 +158,26 @@ export default function CitasForm() {
         </div>
       )}
 
+      {/* 🍯 Honeypot: campo invisible que solo los bots llenan */}
+      <div style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }} aria-hidden="true" tabIndex={-1}>
+        <label htmlFor="website_url">Website</label>
+        <input
+          id="website_url"
+          type="text"
+          name="website"
+          autoComplete="off"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+        />
+      </div>
+
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
           <input
             type="text"
             required
+            maxLength={100}
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
@@ -106,6 +190,7 @@ export default function CitasForm() {
           <input
             type="tel"
             required
+            maxLength={20}
             value={telefono}
             onChange={(e) => setTelefono(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"

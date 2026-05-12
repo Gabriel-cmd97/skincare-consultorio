@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabase';
+import { testWhatsAppConnection } from '@/actions/notificaciones';
 
 interface ConfigItem {
   clave: string;
@@ -25,6 +26,8 @@ export default function ConfigPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testingWA, setTestingWA] = useState(false);
+  const [waLogs, setWaLogs] = useState<string[]>([]);
 
   useEffect(() => {
     fetchConfig();
@@ -176,6 +179,42 @@ export default function ConfigPage() {
               <li>El bot te responderá inmediatamente con tu <b>API Key</b> (una clave de números). Pégala aquí arriba.</li>
             </ol>
             <p className="text-primary-500 italic mt-2">Asegúrate de que tu "Número de WhatsApp (Ventas)" esté correctamente escrito con el código de país (ej. 52 para México).</p>
+          </div>
+          
+          {/* Botón de prueba WhatsApp */}
+          <div className="mt-4 space-y-3">
+            <button
+              onClick={async () => {
+                setTestingWA(true);
+                setWaLogs(['⏳ Iniciando prueba de conexión...']);
+                try {
+                  const result = await testWhatsAppConnection();
+                  setWaLogs(result.logs);
+                } catch (err: any) {
+                  setWaLogs(['💥 Error inesperado: ' + err.message]);
+                } finally {
+                  setTestingWA(false);
+                }
+              }}
+              disabled={testingWA}
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-sm ${
+                testingWA
+                  ? 'bg-amber-100 text-amber-700 cursor-wait'
+                  : 'bg-green-600 text-white hover:bg-green-700'
+              }`}
+            >
+              {testingWA ? '⏳ Enviando prueba...' : '🧪 Probar notificación de WhatsApp'}
+            </button>
+            {waLogs.length > 0 && (
+              <div className="bg-gray-900 text-green-400 p-5 rounded-2xl font-mono text-xs space-y-1 max-h-64 overflow-y-auto">
+                <p className="text-gray-500 mb-2 font-bold uppercase tracking-wider text-[10px]">Diagnóstico WhatsApp</p>
+                {waLogs.map((log, i) => (
+                  <p key={i} className={log.includes('❌') || log.includes('⛔') ? 'text-red-400' : log.includes('✅') ? 'text-green-400' : log.includes('⚠️') ? 'text-amber-400' : 'text-gray-300'}>
+                    {log}
+                  </p>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

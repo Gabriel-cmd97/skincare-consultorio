@@ -82,11 +82,29 @@ export async function crearNotificacionHibrida({
     const telefonoLimpio = telefono.replace(/\D/g, '');
     const telefonoFormateado = `+${telefonoLimpio}`;
     
-    // Construir mensaje con link si existe enlace y siteUrl
-    let textoMensaje = `*${titulo}*\n${mensaje}`;
+    // --- PERSONALIZACIÓN DEL MENSAJE POR TIPO ---
+    let emoji = '🔔';
+    let encabezado = titulo.toUpperCase();
+    
+    if (tipo === 'cita') {
+      emoji = '📅';
+      encabezado = 'NUEVA CITA AGENDADA';
+    } else if (tipo === 'pedido') {
+      emoji = '🛍️';
+      encabezado = 'NUEVO PEDIDO EN TIENDA';
+    } else if (tipo === 'paciente') {
+      emoji = '👤';
+      encabezado = 'NUEVO PACIENTE REGISTRADO';
+    }
+
+    let textoMensaje = `${emoji} *${encabezado}*\n\n${mensaje}`;
+    
+    // Agregar link si existe enlace y siteUrl
     if (enlace && siteUrl) {
-      const fullUrl = siteUrl.endsWith('/') ? `${siteUrl}${enlace.startsWith('/') ? enlace.slice(1) : enlace}` : `${siteUrl}${enlace.startsWith('/') ? enlace : `/${enlace}`}`;
-      textoMensaje += `\n\n🔗 *Ver en el Dashboard:*\n${fullUrl}`;
+      const cleanSiteUrl = siteUrl.endsWith('/') ? siteUrl : `${siteUrl}/`;
+      const cleanEnlace = enlace.startsWith('/') ? enlace.slice(1) : enlace;
+      const fullUrl = `${cleanSiteUrl}${cleanEnlace}`;
+      textoMensaje += `\n\n🔗 *Acceso rápido:*\n${fullUrl}`;
     }
     
     const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(telefonoFormateado)}&text=${encodeURIComponent(textoMensaje)}&apikey=${apiKey}`;

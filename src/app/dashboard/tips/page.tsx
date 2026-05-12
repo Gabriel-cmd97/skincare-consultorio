@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabase';
+import { sanitizeText, sanitizeUrl } from '@/utils/security';
 
 interface Tip {
   id: string;
@@ -49,16 +50,30 @@ export default function TipsPage() {
     if (!editingTip?.titulo || !editingTip?.contenido) return;
 
     try {
+      // Sanitizar datos antes de guardar
+      const cleanTip = {
+        ...editingTip,
+        titulo: sanitizeText(editingTip.titulo || '', 150),
+        contenido: sanitizeText(editingTip.contenido || '', 2000),
+        imagen_url: sanitizeUrl(editingTip.imagen_url || ''),
+        video_url: editingTip.video_url ? sanitizeUrl(editingTip.video_url) : null,
+      };
+
+      if (!cleanTip.titulo || cleanTip.titulo.length < 3) {
+        alert('El título debe tener al menos 3 caracteres.');
+        return;
+      }
+
       if (editingTip.id) {
         const { error } = await supabase
           .from('tips_rutinas')
-          .update(editingTip)
+          .update(cleanTip)
           .eq('id', editingTip.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('tips_rutinas')
-          .insert([editingTip]);
+          .insert([cleanTip]);
         if (error) throw error;
       }
       setShowModal(false);

@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/utils/supabase';
 import { optimizeImage } from '@/utils/optimizeImage';
+import { checkRateLimit } from '@/utils/security';
 import { Loader2, User, Key, ArrowRight, LogOut, Instagram, Camera, Tag, Image as ImageIcon, CheckCircle2, Circle, Bell, BellRing } from 'lucide-react';
 
 interface Tip {
@@ -43,14 +44,31 @@ function VistaLogin({ onLogin }: { onLogin: (paciente: any) => void }) {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!codigo) return;
+
+    // Rate limiting: máximo 10 intentos por hora
+    const rateCheck = checkRateLimit('pwa_login', 10, 60 * 60 * 1000);
+    if (!rateCheck.allowed) {
+      setError('Demasiados intentos. Espera un momento o contacta a tu especialista.');
+      return;
+    }
+
     setLoading(true);
     setError('');
+
+    // Validar formato UUID básico (evitar queries innecesarios)
+    const trimmed = codigo.trim();
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(trimmed)) {
+      setError('Código no válido. Verifica con tu especialista.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error: sbError } = await supabase
         .from('pacientes')
         .select('*')
-        .eq('id', codigo.trim())
+        .eq('id', trimmed)
         .single();
 
       if (sbError || !data) {

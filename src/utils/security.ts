@@ -18,6 +18,28 @@ export function sanitizeText(input: string, maxLength = 200): string {
 }
 
 /**
+ * Sanitiza una URL asegurando que es segura (https/http).
+ * Bloquea javascript:, data:, y vbscript: URIs.
+ */
+export function sanitizeUrl(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  
+  // Bloquear protocolos peligrosos
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith('javascript:') || lower.startsWith('data:') || lower.startsWith('vbscript:')) {
+    return '';
+  }
+  
+  // Solo permitir http://, https://, o rutas relativas que empiezan con /
+  if (!lower.startsWith('http://') && !lower.startsWith('https://') && !lower.startsWith('/')) {
+    return '';
+  }
+  
+  return trimmed.slice(0, 2000); // Max 2000 chars para URLs
+}
+
+/**
  * Valida formato de teléfono mexicano (10-15 dígitos, puede incluir código de país).
  */
 export function isValidPhone(phone: string): boolean {

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/utils/supabase';
 import { optimizeImage } from '@/utils/optimizeImage';
+import { sanitizeText, sanitizeUrl } from '@/utils/security';
 import { 
   Plus, 
   Package, 
@@ -112,10 +113,28 @@ export default function CatalogoAdminPage() {
     e.preventDefault();
     setLoading(true);
 
+    const precio = parseFloat(formData.precio);
+    if (isNaN(precio) || precio < 0 || precio > 999999) {
+      alert('Ingresa un precio válido.');
+      setLoading(false);
+      return;
+    }
+
+    // Sanitizar todos los campos
     const payload = {
-      ...formData,
-      precio: parseFloat(formData.precio)
+      nombre: sanitizeText(formData.nombre, 150),
+      descripcion: sanitizeText(formData.descripcion, 1000),
+      precio,
+      imagen_url: sanitizeUrl(formData.imagen_url),
+      categoria: sanitizeText(formData.categoria, 50),
+      stripe_link: formData.stripe_link ? sanitizeUrl(formData.stripe_link) : '',
     };
+
+    if (!payload.nombre || payload.nombre.length < 2) {
+      alert('El nombre del producto debe tener al menos 2 caracteres.');
+      setLoading(false);
+      return;
+    }
 
     if (editingProduct) {
       await supabase.from('productos').update(payload).eq('id', editingProduct.id);

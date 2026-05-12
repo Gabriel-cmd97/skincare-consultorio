@@ -5,6 +5,7 @@ import { supabase } from '@/utils/supabase';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Edit3, X, Save, Loader2, Mail, Copy, Trash2 } from 'lucide-react';
+import { sanitizeText } from '@/utils/security';
 
 // ---- Datos ficticios por ID ----
 const PACIENTES_MOCK: Record<string, any> = {
@@ -127,15 +128,15 @@ export default function ExpedientePage() {
     e.preventDefault();
     setSaving(true);
     
-    const protocolArray = evalData.protocolo.split('\n').filter((p: string) => p.trim() !== '');
+    const protocolArray = evalData.protocolo.split('\n').filter((p: string) => p.trim() !== '').map((p: string) => sanitizeText(p, 300));
     
     const updatePayload = {
-      fototipo: evalData.fototipo,
-      hidratacion: evalData.hidratacion,
-      elasticidad: evalData.elasticidad,
-      sensibilidad: evalData.sensibilidad,
-      objetivo: evalData.objetivo,
-      tratamiento: evalData.tratamiento,
+      fototipo: sanitizeText(evalData.fototipo, 10),
+      hidratacion: sanitizeText(evalData.hidratacion, 20),
+      elasticidad: sanitizeText(evalData.elasticidad, 20),
+      sensibilidad: sanitizeText(evalData.sensibilidad, 20),
+      objetivo: sanitizeText(evalData.objetivo, 30),
+      tratamiento: sanitizeText(evalData.tratamiento, 200),
       protocolo: protocolArray
     };
 
@@ -163,7 +164,7 @@ export default function ExpedientePage() {
   const handleSaveNotas = async () => {
     setSaving(true);
     try {
-      await supabase.from('pacientes').update({ notas } as any).eq('id', id);
+      await supabase.from('pacientes').update({ notas: sanitizeText(notas, 5000) } as any).eq('id', id);
     } catch { /* silencioso en modo mock */ } finally {
       setSaving(false);
     }

@@ -89,15 +89,22 @@ export async function crearNotificacionHibrida({
     try {
       const response = await fetch(url, { method: 'GET', cache: 'no-store' });
       const responseText = await response.text();
+      const lowerRes = responseText.toLowerCase();
       
       logs.push(`📡 HTTP Status: ${response.status} ${response.statusText}`);
       logs.push(`📡 Respuesta: ${responseText.slice(0, 300)}`);
 
-      if (response.ok && !responseText.toLowerCase().includes('error')) {
+      // CallMeBot a veces devuelve 200 OK pero con un mensaje de error en el texto
+      const isError = !response.ok || 
+                      lowerRes.includes('error') || 
+                      lowerRes.includes('invalid') || 
+                      lowerRes.includes('not registered');
+
+      if (!isError) {
         whatsappSent = true;
         logs.push('✅ ¡Mensaje de WhatsApp enviado correctamente!');
       } else {
-        logs.push('❌ CallMeBot respondió con error. Verifica tu API Key y número.');
+        logs.push('❌ CallMeBot rechazó el mensaje. Verifica tu API Key y que el número esté registrado con el bot.');
       }
     } catch (fetchError: any) {
       logs.push(`❌ Error de conexión a CallMeBot: ${fetchError.message}`);

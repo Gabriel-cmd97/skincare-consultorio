@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/utils/supabase';
+import { optimizeImage } from '@/utils/optimizeImage';
 import { Loader2, User, Key, ArrowRight, LogOut, Instagram, Camera, Tag, Image as ImageIcon, CheckCircle2, Circle, Bell, BellRing } from 'lucide-react';
 
 interface Tip {
@@ -276,14 +277,15 @@ function VistaPerfil({ paciente, onLogout }: { paciente: any, onLogout: () => vo
     if (!file) return;
     setUploading(true);
     try {
-      const ext = file.name.split('.').pop();
-      const fileName = `paciente_${paciente.id}_${Date.now()}.${ext}`;
+      // Optimizar: convertir a WebP y comprimir (fotos de perfil: 400x400)
+      const optimized = await optimizeImage(file, { maxWidth: 400, maxHeight: 400, quality: 0.8 });
+      const fileName = `paciente_${paciente.id}_${Date.now()}.webp`;
       const { error: uploadError } = await supabase.storage
-        .from('avatares')
-        .upload(fileName, file, { upsert: true });
+        .from('pacientes-fotos')
+        .upload(fileName, optimized, { upsert: true, contentType: 'image/webp' });
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage.from('avatares').getPublicUrl(fileName);
+      const { data } = supabase.storage.from('pacientes-fotos').getPublicUrl(fileName);
       setFotoUrl(data.publicUrl);
       await supabase.from('pacientes').update({ foto_url: data.publicUrl } as any).eq('id', paciente.id);
     } catch (err) {

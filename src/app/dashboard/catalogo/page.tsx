@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/utils/supabase';
+import { optimizeImage } from '@/utils/optimizeImage';
 import { 
   Plus, 
   Package, 
@@ -62,11 +63,12 @@ export default function CatalogoAdminPage() {
     if (!file) return;
     setUploadingImage(true);
     try {
-      const ext = file.name.split('.').pop();
-      const fileName = `producto_${Date.now()}.${ext}`;
+      // Optimizar: convertir a WebP y comprimir
+      const optimized = await optimizeImage(file, { maxWidth: 800, maxHeight: 800, quality: 0.82 });
+      const fileName = `producto_${Date.now()}.webp`;
       const { error: upError } = await supabase.storage
         .from('catalogo')
-        .upload(fileName, file, { upsert: true, contentType: file.type });
+        .upload(fileName, optimized, { upsert: true, contentType: 'image/webp' });
       if (upError) throw upError;
 
       const { data: urlData } = supabase.storage

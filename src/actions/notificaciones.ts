@@ -46,7 +46,7 @@ export async function crearNotificacionHibrida({
     const { data: configData, error: configError } = await supabase
       .from('configuracion')
       .select('*')
-      .in('clave', ['whatsapp', 'callmebot_api_key']);
+      .in('clave', ['whatsapp', 'callmebot_api_key', 'site_url']);
 
     if (configError) {
       logs.push(`❌ Error leyendo configuración: ${configError.message}`);
@@ -55,14 +55,17 @@ export async function crearNotificacionHibrida({
 
     let telefono = '';
     let apiKey = '';
+    let siteUrl = '';
 
     configData.forEach(item => {
       if (item.clave === 'whatsapp') telefono = item.valor;
       if (item.clave === 'callmebot_api_key') apiKey = item.valor;
+      if (item.clave === 'site_url') siteUrl = item.valor;
     });
 
     logs.push(`📱 Teléfono encontrado: ${telefono ? `"${telefono}" (${telefono.length} chars)` : '⚠️ VACÍO'}`);
     logs.push(`🔑 API Key encontrada: ${apiKey ? `"${apiKey.slice(0, 3)}***" (${apiKey.length} chars)` : '⚠️ VACÍA'}`);
+    logs.push(`🌐 URL del sitio: ${siteUrl || '⚠️ No configurada'}`);
 
     // 3. Enviar mensaje por WhatsApp si están configurados los datos
     if (!telefono) {
@@ -79,7 +82,13 @@ export async function crearNotificacionHibrida({
     const telefonoLimpio = telefono.replace(/\D/g, '');
     const telefonoFormateado = `+${telefonoLimpio}`;
     
-    const textoMensaje = `*${titulo}*\n${mensaje}`;
+    // Construir mensaje con link si existe enlace y siteUrl
+    let textoMensaje = `*${titulo}*\n${mensaje}`;
+    if (enlace && siteUrl) {
+      const fullUrl = siteUrl.endsWith('/') ? `${siteUrl}${enlace.startsWith('/') ? enlace.slice(1) : enlace}` : `${siteUrl}${enlace.startsWith('/') ? enlace : `/${enlace}`}`;
+      textoMensaje += `\n\n🔗 *Ver en el Dashboard:*\n${fullUrl}`;
+    }
+    
     const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(telefonoFormateado)}&text=${encodeURIComponent(textoMensaje)}&apikey=${apiKey}`;
 
     logs.push(`📤 Enviando a CallMeBot...`);

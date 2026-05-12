@@ -14,6 +14,7 @@ export default function ConfigPage() {
   const [primaryColor, setPrimaryColor] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [callmebotApiKey, setCallmebotApiKey] = useState('');
+  const [siteUrl, setSiteUrl] = useState('');
   
   // Secciones Landing
   const [landingServicios, setLandingServicios] = useState(true);
@@ -45,6 +46,7 @@ export default function ConfigPage() {
           if (configItem.clave === 'primary_color') setPrimaryColor(configItem.valor || '');
           if (configItem.clave === 'whatsapp') setWhatsapp(configItem.valor || '');
           if (configItem.clave === 'callmebot_api_key') setCallmebotApiKey(configItem.valor || '');
+          if (configItem.clave === 'site_url') setSiteUrl(configItem.valor || '');
           
           if (configItem.clave === 'landing_servicios') setLandingServicios(configItem.valor === 'true');
           if (configItem.clave === 'landing_proceso') setLandingProceso(configItem.valor === 'true');
@@ -69,6 +71,7 @@ export default function ConfigPage() {
         { clave: 'primary_color', valor: primaryColor },
         { clave: 'whatsapp', valor: whatsapp },
         { clave: 'callmebot_api_key', valor: callmebotApiKey },
+        { clave: 'site_url', valor: siteUrl },
         { clave: 'landing_servicios', valor: String(landingServicios) },
         { clave: 'landing_proceso', valor: String(landingProceso) },
         { clave: 'landing_testimonios', valor: String(landingTestimonios) },
@@ -135,6 +138,22 @@ export default function ConfigPage() {
             />
           </div>
           <p className="text-xs text-primary-400">Incluye el código de país (ej. 52 para México) sin el signo +. Aquí te llegarán los pedidos de la tienda.</p>
+        </div>
+
+        {/* URL del Sitio Section */}
+        <div className="space-y-4">
+          <label className="block text-sm font-bold text-primary-900 uppercase tracking-wider">URL Base del Sitio (para links de WhatsApp)</label>
+          <div className="flex gap-4 items-center">
+            <span className="text-xl">🌐</span>
+            <input
+              type="url"
+              value={siteUrl}
+              onChange={(e) => setSiteUrl(e.target.value)}
+              placeholder="https://tu-sitio.pages.dev"
+              className="flex-1 p-3 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-500 outline-none transition text-primary-900"
+            />
+          </div>
+          <p className="text-xs text-primary-400">Pega la dirección de tu página web. Se usará para enviarte botones de acceso directo por WhatsApp.</p>
         </div>
 
         {/* Colors Section */}

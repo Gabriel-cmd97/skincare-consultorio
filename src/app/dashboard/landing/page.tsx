@@ -24,6 +24,13 @@ export default function LandingEditorPage() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // --- Visibilidad de Secciones (desde Admin) ---
+  const [showServicios, setShowServicios] = useState(true);
+  const [showProceso, setShowProceso] = useState(true);
+  const [showTestimonios, setShowTestimonios] = useState(true);
+  const [showEspecialista, setShowEspecialista] = useState(true);
+  const [showUbicacion, setShowUbicacion] = useState(true);
+
   // --- Sección Hero ---
   const [heroTitulo, setHeroTitulo] = useState('Tu piel merece un enfoque clínico');
   const [heroSubtitulo, setHeroSubtitulo] = useState('Tratamientos especializados en alteraciones de la piel y tejidos en Toluca. Cuidado profesional con base científica para resultados reales.');
@@ -76,6 +83,13 @@ export default function LandingEditorPage() {
       if (config.testimonios_content) try { setTestimonios(JSON.parse(config.testimonios_content)); } catch(e){}
       if (config.especialista_info) try { setEspecialista(JSON.parse(config.especialista_info)); } catch(e){}
       if (config.ubicacion_info) try { setUbicacion(prev => ({ ...prev, ...JSON.parse(config.ubicacion_info) })); } catch(e){}
+      
+      // Load visibility flags
+      if (config.landing_servicios !== undefined) setShowServicios(config.landing_servicios === 'true');
+      if (config.landing_proceso !== undefined) setShowProceso(config.landing_proceso === 'true');
+      if (config.landing_testimonios !== undefined) setShowTestimonios(config.landing_testimonios === 'true');
+      if (config.landing_especialista !== undefined) setShowEspecialista(config.landing_especialista === 'true');
+      if (config.landing_ubicacion !== undefined) setShowUbicacion(config.landing_ubicacion === 'true');
     } catch(e) { console.error(e); }
     finally { setLoading(false); }
   }
@@ -140,7 +154,14 @@ export default function LandingEditorPage() {
       {/* Tabs */}
       <div className="bg-white rounded-3xl border border-primary-100 shadow-sm overflow-hidden">
         <div className="flex border-b border-primary-100 overflow-x-auto">
-          {SECTIONS.map(sec => (
+          {SECTIONS.filter(sec => {
+            if (sec.id === 'servicios' && !showServicios) return false;
+            if (sec.id === 'proceso' && !showProceso) return false;
+            if (sec.id === 'testimonios' && !showTestimonios) return false;
+            if (sec.id === 'especialista' && !showEspecialista) return false;
+            if (sec.id === 'ubicacion' && !showUbicacion) return false;
+            return true;
+          }).map(sec => (
             <button
               key={sec.id}
               onClick={() => setActiveTab(sec.id)}

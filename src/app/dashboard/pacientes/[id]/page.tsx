@@ -195,6 +195,7 @@ export default function ExpedientePage() {
   const Toggle = ({ label, checked, onChange }: { label: string, checked: boolean, onChange: (val: boolean) => void }) => (
     <label className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition">
       <span className="text-sm font-medium text-gray-700">{label}</span>
+      <input type="checkbox" className="hidden" checked={checked || false} onChange={(e) => onChange(e.target.checked)} />
       <div className={`w-10 h-6 flex items-center rounded-full p-1 transition-colors ${checked ? 'bg-primary-500' : 'bg-gray-300'}`}>
         <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${checked ? 'translate-x-4' : ''}`} />
       </div>

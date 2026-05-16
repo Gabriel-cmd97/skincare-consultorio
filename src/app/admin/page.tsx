@@ -268,40 +268,40 @@ export default function AdminSoportePage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           
-          {/* Columna Izquierda: Mensajería y URL */}
-          <div className="space-y-8">
-            <section className="bg-slate-800/50 border border-slate-700/50 rounded-3xl p-6 space-y-6">
+          {/* Columna 1: Configuración Básica */}
+          <div className="space-y-6">
+            <section className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 space-y-5">
               <div className="flex items-center gap-2 text-blue-400">
                 <MessageSquare className="w-5 h-5" />
-                <h2 className="font-bold uppercase tracking-wider text-sm">WhatsApp & Notificaciones</h2>
+                <h2 className="font-bold uppercase tracking-wider text-sm">WhatsApp & Notifs</h2>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase">Número Destino (Internacional)</label>
+                  <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Número Destino</label>
                   <input
                     type="text"
                     value={whatsapp}
                     onChange={(e) => setWhatsapp(e.target.value)}
                     placeholder="Ej: 521733..."
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase">CallMeBot API Key</label>
+                  <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">CallMeBot API Key</label>
                   <input
                     type="text"
                     value={callmebotApiKey}
                     onChange={(e) => setCallmebotApiKey(e.target.value)}
                     placeholder="Ej: 7720184"
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"
                   />
                 </div>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-2">
                 <button
                   onClick={async () => {
                     setTestingWA(true);
@@ -311,13 +311,13 @@ export default function AdminSoportePage() {
                     setTestingWA(false);
                   }}
                   disabled={testingWA}
-                  className="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition"
+                  className="w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition"
                 >
                   <Terminal className="w-4 h-4" />
-                  {testingWA ? 'Probando...' : 'Ejecutar Test de WhatsApp'}
+                  {testingWA ? 'Probando...' : 'Test WhatsApp'}
                 </button>
                 {waLogs.length > 0 && (
-                  <div className="mt-4 bg-black/40 rounded-xl p-4 font-mono text-[10px] leading-relaxed max-h-48 overflow-y-auto border border-slate-700">
+                  <div className="mt-3 bg-black/40 rounded-lg p-3 font-mono text-[9px] leading-relaxed max-h-32 overflow-y-auto border border-slate-700">
                     {waLogs.map((log, i) => (
                       <div key={i} className={
                         log.includes('✅') ? 'text-emerald-400' : 
@@ -332,92 +332,64 @@ export default function AdminSoportePage() {
               </div>
             </section>
 
-            <section className="bg-slate-800/50 border border-slate-700/50 rounded-3xl p-6 space-y-6">
+            <section className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 space-y-4">
               <div className="flex items-center gap-2 text-indigo-400">
                 <Globe className="w-5 h-5" />
-                <h2 className="font-bold uppercase tracking-wider text-sm">Infraestructura Web</h2>
+                <h2 className="font-bold uppercase tracking-wider text-sm">Infraestructura</h2>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase">URL Base del Proyecto</label>
+                <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">URL Base</label>
                 <input
                   type="url"
                   value={siteUrl}
                   onChange={(e) => setSiteUrl(e.target.value)}
                   placeholder="https://..."
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition"
                 />
-                <p className="mt-2 text-[10px] text-slate-500">Usada para generar links absolutos en notificaciones externas.</p>
               </div>
             </section>
           </div>
 
-          {/* Columna Derecha: Secciones de la Landing */}
-          <div className="space-y-8">
-            <section className="bg-slate-800/50 border border-slate-700/50 rounded-3xl p-6">
-              <div className="flex items-center gap-2 text-amber-400 mb-6">
+          {/* Columna 2: Visibilidad (Toggles compactos) */}
+          <div className="space-y-6">
+            <section className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
+              <div className="flex items-center gap-2 text-amber-400 mb-4">
                 <Layout className="w-5 h-5" />
-                <h2 className="font-bold uppercase tracking-wider text-sm">Visibilidad de Secciones (PWA/Landing)</h2>
+                <h2 className="font-bold uppercase tracking-wider text-sm">Secciones Landing</h2>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {[
-                  { label: 'Servicios y Tratamientos', state: landingServicios, setter: setLandingServicios },
+                  { label: 'Servicios', state: landingServicios, setter: setLandingServicios },
                   { label: 'Proceso de Atención', state: landingProceso, setter: setLandingProceso },
                   { label: 'Testimonios', state: landingTestimonios, setter: setLandingTestimonios },
-                  { label: 'Sobre Especialista', state: landingEspecialista, setter: setLandingEspecialista },
-                  { label: 'Ubicación y Contacto', state: landingUbicacion, setter: setLandingUbicacion },
+                  { label: 'Especialista', state: landingEspecialista, setter: setLandingEspecialista },
+                  { label: 'Ubicación', state: landingUbicacion, setter: setLandingUbicacion },
                 ].map((s, i) => (
                   <button
                     key={i}
                     onClick={() => s.setter(!s.state)}
-                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all ${
                       s.state 
                         ? 'bg-blue-500/10 border-blue-500/50 text-blue-100' 
                         : 'bg-slate-900 border-slate-700 text-slate-500'
                     }`}
                   >
-                    <span className="text-sm font-medium">{s.label}</span>
-                    <div className={`w-10 h-5 rounded-full relative transition-colors ${s.state ? 'bg-blue-500' : 'bg-slate-700'}`}>
-                      <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${s.state ? 'left-6' : 'left-1'}`} />
+                    <span className="text-xs font-bold">{s.label}</span>
+                    <div className={`w-8 h-4 rounded-full relative transition-colors ${s.state ? 'bg-blue-500' : 'bg-slate-700'}`}>
+                      <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${s.state ? 'left-4' : 'left-0.5'}`} />
                     </div>
                   </button>
                 ))}
               </div>
-              
-              <div className="mt-8 p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl">
-                <div className="flex gap-3">
-                  <Settings className="w-5 h-5 text-amber-500 shrink-0" />
-                  <p className="text-[11px] text-amber-200/70 leading-relaxed">
-                    <b>Nota de Soporte:</b> Estos cambios afectan directamente la visibilidad de componentes en la página pública. Desactivar secciones innecesarias mejora la velocidad de carga.
-                  </p>
-                </div>
-              </div>
             </section>
             
-            <section className="bg-slate-800/50 border border-slate-700/50 rounded-3xl p-6 space-y-6">
-              <div className="flex items-center gap-2 text-emerald-400">
-                <Database className="w-5 h-5" />
-                <h2 className="font-bold uppercase tracking-wider text-sm">Respaldo y Mantenimiento</h2>
-              </div>
-              <p className="text-xs text-slate-400">Descarga una copia completa de seguridad en formato JSON. Incluye pacientes y citas.</p>
-              <button
-                onClick={handleExportData}
-                disabled={exporting}
-                className="w-full py-3 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition"
-              >
-                {exporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                {exporting ? 'Generando...' : 'Exportar Base de Datos'}
-              </button>
-            </section>
-            
-            <section className="bg-slate-800/50 border border-slate-700/50 rounded-3xl p-6 space-y-6">
+            <section className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 space-y-4">
               <div className="flex items-center gap-2 text-purple-400">
                 <ToggleLeft className="w-5 h-5" />
-                <h2 className="font-bold uppercase tracking-wider text-sm">Módulos SaaS (Dashboard)</h2>
+                <h2 className="font-bold uppercase tracking-wider text-sm">Módulos SaaS</h2>
               </div>
-              <p className="text-xs text-slate-400">Activa o desactiva funciones del panel del especialista según el plan contratado.</p>
-              
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {[
                   { label: 'Catálogo de Productos', state: moduleStore, setter: setModuleStore },
                   { label: 'Rutinas y Tips', state: moduleTips, setter: setModuleTips },
@@ -425,41 +397,58 @@ export default function AdminSoportePage() {
                   <button
                     key={i}
                     onClick={() => s.setter(!s.state)}
-                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all ${
                       s.state 
                         ? 'bg-purple-500/10 border-purple-500/50 text-purple-100' 
                         : 'bg-slate-900 border-slate-700 text-slate-500'
                     }`}
                   >
-                    <span className="text-sm font-medium">{s.label}</span>
-                    <div className={`w-10 h-5 rounded-full relative transition-colors ${s.state ? 'bg-purple-500' : 'bg-slate-700'}`}>
-                      <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${s.state ? 'left-6' : 'left-1'}`} />
+                    <span className="text-xs font-bold">{s.label}</span>
+                    <div className={`w-8 h-4 rounded-full relative transition-colors ${s.state ? 'bg-purple-500' : 'bg-slate-700'}`}>
+                      <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${s.state ? 'left-4' : 'left-0.5'}`} />
                     </div>
                   </button>
                 ))}
               </div>
             </section>
-            
-            <section className="bg-slate-800/50 border border-slate-700/50 rounded-3xl p-6 space-y-6">
+          </div>
+
+          {/* Columna 3: Accesos y Respaldo */}
+          <div className="space-y-6">
+            <section className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 space-y-4">
               <div className="flex items-center gap-2 text-fuchsia-400">
                 <ExternalLink className="w-5 h-5" />
-                <h2 className="font-bold uppercase tracking-wider text-sm">Accesos VIP (Soporte Técnico)</h2>
+                <h2 className="font-bold uppercase tracking-wider text-sm">Accesos VIP</h2>
               </div>
-              <p className="text-xs text-slate-400">Accede directamente a los editores visuales del sistema para configurar la marca y el contenido de tu cliente.</p>
+              <p className="text-[11px] text-slate-400">Editores visuales de marca y contenido.</p>
               
-              <div className="space-y-3">
-                <a href="/dashboard/configuracion" target="_blank" className="w-full flex items-center justify-between p-4 rounded-2xl border bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800 transition-all group">
-                  <span className="text-sm font-medium">🎨 Configuración de Marca (Color/Logo)</span>
-                  <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-fuchsia-400" />
+              <div className="space-y-2">
+                <a href="/dashboard/configuracion" target="_blank" className="w-full flex items-center justify-between p-3 rounded-xl border bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800 transition-all group">
+                  <span className="text-xs font-bold">🎨 Config. Marca</span>
+                  <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-fuchsia-400" />
                 </a>
-                <a href="/dashboard/landing" target="_blank" className="w-full flex items-center justify-between p-4 rounded-2xl border bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800 transition-all group">
-                  <span className="text-sm font-medium">📝 Editor de Página Principal</span>
-                  <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-fuchsia-400" />
+                <a href="/dashboard/landing" target="_blank" className="w-full flex items-center justify-between p-3 rounded-xl border bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800 transition-all group">
+                  <span className="text-xs font-bold">📝 Editor Landing</span>
+                  <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-fuchsia-400" />
                 </a>
               </div>
-              <p className="text-[10px] text-slate-500 text-center">* Estos paneles requieren tener la sesión del especialista activa en esta ventana.</p>
             </section>
 
+            <section className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 space-y-4">
+              <div className="flex items-center gap-2 text-emerald-400">
+                <Database className="w-5 h-5" />
+                <h2 className="font-bold uppercase tracking-wider text-sm">Respaldo</h2>
+              </div>
+              <p className="text-[11px] text-slate-400">Descarga en JSON de la BD.</p>
+              <button
+                onClick={handleExportData}
+                disabled={exporting}
+                className="w-full py-2.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition"
+              >
+                {exporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                {exporting ? 'Generando...' : 'Exportar JSON'}
+              </button>
+            </section>
           </div>
 
         </div>

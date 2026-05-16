@@ -102,25 +102,62 @@ export default async function Home() {
             </div>
           </div>
           
-          <div className="relative hidden lg:block">
-            <div className="aspect-[4/5] bg-primary-100 rounded-[40px] overflow-hidden shadow-2xl relative group">
-              <div className="absolute inset-0 bg-gradient-to-t from-primary-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              {/* Placeholder para imagen de consultorio/servicio */}
-              <div className="w-full h-full flex items-center justify-center text-primary-300">
-                <svg className="w-32 h-32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-              </div>
-            </div>
-            {/* Tarjeta flotante de confianza */}
-            <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-2xl shadow-2xl border border-primary-50 max-w-xs animate-bounce-slow">
-              <div className="flex gap-4 items-center">
-                <div className="bg-primary-500 p-3 rounded-xl text-white">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+          {/* Panel visual - stats decorativos */}
+          <div className="relative hidden lg:flex items-center justify-center">
+            {/* Fondo decorativo */}
+            <div className="absolute w-80 h-80 bg-primary-100 rounded-full blur-3xl opacity-60" />
+
+            {/* Card central principal */}
+            <div className="relative z-10 bg-white rounded-[40px] shadow-2xl border border-primary-100 p-10 w-80 space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 bg-primary-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Sparkles className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <p className="font-bold text-primary-900 text-lg">Certificada</p>
-                  <p className="text-sm text-primary-500">Resultados clínicos garantizados</p>
+                  <p className="font-serif font-bold text-primary-900 text-lg leading-tight">LR Fisioderm</p>
+                  <p className="text-primary-400 text-xs font-bold uppercase tracking-widest">Clínica Dermatofuncional</p>
                 </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-primary-50 rounded-2xl p-4 text-center">
+                  <p className="text-3xl font-serif font-bold text-primary-700">+5</p>
+                  <p className="text-[10px] text-primary-400 uppercase font-bold tracking-wider mt-1">Años de exp.</p>
+                </div>
+                <div className="bg-primary-50 rounded-2xl p-4 text-center">
+                  <p className="text-3xl font-serif font-bold text-primary-700">100%</p>
+                  <p className="text-[10px] text-primary-400 uppercase font-bold tracking-wider mt-1">Personalizado</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {['Valoración clínica profunda', 'Protocolo 100% personalizado', 'App de seguimiento incluida'].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3 text-sm text-primary-700">
+                    <div className="w-5 h-5 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-3 h-3 text-primary-500" />
+                    </div>
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Badge flotante - Certificada */}
+            <div className="absolute -bottom-4 -left-4 bg-white px-5 py-4 rounded-2xl shadow-xl border border-primary-50 flex items-center gap-3 z-20">
+              <div className="bg-primary-500 p-2.5 rounded-xl text-white">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-bold text-primary-900 text-sm">Certificada</p>
+                <p className="text-xs text-primary-400">Resultados clínicos</p>
+              </div>
+            </div>
+
+            {/* Badge flotante - Rating */}
+            <div className="absolute -top-4 -right-4 bg-primary-900 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 z-20">
+              <Star className="w-4 h-4 text-amber-400 fill-current" />
+              <p className="font-bold text-white text-sm">5.0</p>
+              <p className="text-primary-300 text-xs">Pacientes</p>
             </div>
           </div>
         </div>

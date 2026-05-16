@@ -233,10 +233,10 @@ export default function ExpedientePage() {
             </button>
             <button 
               onClick={() => {
-                const url = `${window.location.origin}/pwa`;
-                const msg = `¡Hola ${paciente.nombre}! Ya puedes acceder a tu app personalizada de Skincare.\n\nEnlace: ${url}\nTu código de acceso es: ${paciente.id}`;
+                const url = `${window.location.origin}/pwa?code=${paciente.id}`;
+                const msg = `¡Hola ${paciente.nombre}! Ya puedes acceder a tu app personalizada de Skincare. 🌿\n\nEntra directo con este enlace:\n${url}\n\nTambién puedes entrar manualmente en: ${window.location.origin}/pwa\nTu código de acceso es: ${paciente.id}`;
                 navigator.clipboard.writeText(msg);
-                alert('¡Mensaje y código copiados al portapapeles!');
+                alert('¡Enlace y código copiados al portapapeles!');
               }}
               className="text-xs bg-blue-100 text-blue-700 font-bold px-4 py-2 rounded-full flex items-center gap-2 transition hover:bg-blue-200"
             >

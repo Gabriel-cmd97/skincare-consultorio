@@ -560,11 +560,23 @@ export default function PWAPage() {
   const [moduleTips, setModuleTips] = useState(true);
 
   useEffect(() => {
+    // 1. Intentar auto-login desde la URL (?code=UUID)
+    const urlParams = new URLSearchParams(window.location.search);
+    const codeFromUrl = urlParams.get('code');
+
+    if (codeFromUrl) {
+      // Limpiar el code de la URL para que no se vea feo después de login
+      window.history.replaceState({}, '', '/pwa');
+      // Intentar login automático con ese código
+      autoLoginFromUrl(codeFromUrl);
+      return;
+    }
+
+    // 2. Si no hay code en URL, revisar localStorage como antes
     const saved = localStorage.getItem('pwa_paciente');
     if (saved) {
       const parsed = JSON.parse(saved);
       setPaciente(parsed);
-      // Re-fetch data to sync with latest changes from dashboard
       reFetchPaciente(parsed.id);
     }
     setChecking(false);
@@ -572,6 +584,28 @@ export default function PWAPage() {
     fetchProductos();
     fetchConfig();
   }, []);
+
+  async function autoLoginFromUrl(code: string) {
+    fetchContent();
+    fetchProductos();
+    fetchConfig();
+    try {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(code.trim())) { setChecking(false); return; }
+
+      const { data, error } = await supabase.from('pacientes').select('*').eq('id', code.trim()).single();
+      if (!error && data) {
+        const { data: evData } = await supabase.from('evaluaciones_clinicas').select('*').eq('paciente_id', code.trim()).order('created_at', { ascending: false }).limit(1).single();
+        const fullData = { ...data, evaluacion: evData || {} };
+        setPaciente(fullData);
+        localStorage.setItem('pwa_paciente', JSON.stringify(fullData));
+      }
+    } catch (err) {
+      console.error('Auto-login error:', err);
+    } finally {
+      setChecking(false);
+    }
+  }
 
   async function reFetchPaciente(id: string) {
     try {

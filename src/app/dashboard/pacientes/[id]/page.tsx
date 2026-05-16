@@ -495,12 +495,8 @@ export default function ExpedientePage() {
                     <label className="text-xs font-bold text-gray-500 uppercase">Objetivo Principal</label>
                     <select value={evalData.objetivo} onChange={e => setEvalData({...evalData, objetivo: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 mt-1 outline-none">
                       <option value="Estético">Estético</option>
-                      <option value="Médico">Médico</option>
-                      <option value="Preventivo">Preventivo</option>
-                      <option value="Anti-edad">Anti-edad</option>
-                      <option value="Acné">Acné</option>
-                      <option value="Manchas">Manchas</option>
-                      <option value="Rosácea">Rosácea</option>
+                      <option value="Funcional">Funcional</option>
+                      <option value="Mixto">Mixto</option>
                     </select>
                   </div>
                 </div>

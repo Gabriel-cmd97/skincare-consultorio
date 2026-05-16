@@ -141,7 +141,7 @@ export default function CitasForm() {
       const { error: insertError } = await supabase.from("citas").insert([
           {
             paciente_nombre: cleanNombre,
-            paciente_email: '',
+            paciente_email: 'sin-email@consultorio.com',
             paciente_telefono: cleanTelefono,
             fecha_hora: fechaHora,
             tipo_tratamiento: sanitizeText(tratamiento, 50),

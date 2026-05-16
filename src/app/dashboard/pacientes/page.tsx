@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/utils/supabase';
-import { Plus, Search, Edit3, Eye, X, Loader2, Save, User, Phone, Calendar, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit3, Eye, X, Loader2, Save, User, Phone, Calendar, Trash2, Copy } from 'lucide-react';
 
 interface Paciente {
   id: string;
@@ -224,6 +224,19 @@ export default function PacientesPage() {
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const url = `${window.location.origin}/pwa?code=${p.id}`;
+                              const msg = `¡Hola ${p.nombre}! Ya puedes acceder a tu app personalizada de Skincare. 🌿\n\nEntra directo con este enlace:\n${url}\n\nTambién puedes entrar manualmente en: ${window.location.origin}/pwa\nTu código de acceso es: ${p.id}`;
+                              navigator.clipboard.writeText(msg);
+                              alert('¡Enlace y código copiados al portapapeles!');
+                            }}
+                            className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition"
+                            title="Copiar link PWA"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
                           <button 
                             onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}
                             className="p-2 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition"
@@ -285,6 +298,18 @@ export default function PacientesPage() {
                     className="w-12 bg-primary-50 text-primary-600 flex items-center justify-center rounded-xl"
                   >
                     <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const url = `${window.location.origin}/pwa?code=${p.id}`;
+                      const msg = `¡Hola ${p.nombre}! Ya puedes acceder a tu app personalizada de Skincare. 🌿\n\nEntra directo con este enlace:\n${url}\n\nTambién puedes entrar manualmente en: ${window.location.origin}/pwa\nTu código de acceso es: ${p.id}`;
+                      navigator.clipboard.writeText(msg);
+                      alert('¡Enlace y código copiados al portapapeles!');
+                    }}
+                    className="w-12 bg-blue-50 text-blue-600 flex items-center justify-center rounded-xl"
+                  >
+                    <Copy className="w-4 h-4" />
                   </button>
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}

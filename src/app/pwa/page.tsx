@@ -40,6 +40,17 @@ function VistaLogin({ onLogin }: { onLogin: (paciente: any) => void }) {
   const [codigo, setCodigo] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [instagramUser, setInstagramUser] = useState('lr_fisderm');
+
+  useEffect(() => {
+    async function fetchConfig() {
+      const { data } = await supabase.from('configuracion').select('valor').eq('llave', 'especialista_info').single();
+      if (data && data.valor && data.valor.instagram) {
+        setInstagramUser(data.valor.instagram.replace('@', ''));
+      }
+    }
+    fetchConfig();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +128,7 @@ function VistaLogin({ onLogin }: { onLogin: (paciente: any) => void }) {
       <div className="mt-auto pt-10 text-center">
         <p className="text-primary-300 text-xs uppercase tracking-widest font-bold mb-4">LR Fisioderm</p>
         <div className="flex justify-center gap-4">
-          <a href="https://www.instagram.com/lr_fisderm" target="_blank" className="text-primary-400 hover:text-primary-600">
+          <a href={`https://www.instagram.com/${instagramUser}`} target="_blank" rel="noreferrer" className="text-primary-400 hover:text-primary-600">
             <Instagram className="w-6 h-6" />
           </a>
         </div>
@@ -343,20 +354,31 @@ function VistaPerfil({ paciente, onLogout }: { paciente: any, onLogout: () => vo
 
       <div className="bg-white rounded-[28px] p-6 border border-primary-100 shadow-sm space-y-4">
         <h3 className="font-bold text-primary-900 text-sm uppercase tracking-wider border-b border-primary-50 pb-2">Tu Evaluación</h3>
-        <p className="text-[10px] text-primary-400 italic leading-relaxed">Estos datos fueron registrados por tu especialista en tu última valoración clínica. Si algo no coincide, comentáselo en tu próxima cita. 👩‍⚕️</p>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: 'Fototipo', value: paciente.evaluacion?.piel_fototipo || paciente.fototipo || '—' },
-            { label: 'Hidratación', value: paciente.evaluacion?.piel_hidratacion || paciente.hidratacion || '—' },
-            { label: 'Sensibilidad', value: paciente.evaluacion?.piel_sensibilidad ? 'Alta' : (paciente.sensibilidad || '—') },
-            { label: 'Objetivo', value: paciente.evaluacion?.objetivo_principal || paciente.objetivo || '—' },
-          ].map((item) => (
-            <div key={item.label} className="bg-primary-50 rounded-2xl p-3">
-              <p className="text-[9px] font-bold text-primary-400 uppercase tracking-widest">{item.label}</p>
-              <p className="font-bold text-primary-900 text-sm mt-1">{item.value}</p>
+        
+        {paciente.evaluacion?.piel_fototipo ? (
+          <>
+            <p className="text-[10px] text-primary-400 italic leading-relaxed">Estos datos fueron registrados por tu especialista en tu última valoración clínica. Si algo no coincide, comentáselo en tu próxima cita. 👩‍⚕️</p>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'Fototipo', value: paciente.evaluacion.piel_fototipo },
+                { label: 'Hidratación', value: paciente.evaluacion.piel_hidratacion },
+                { label: 'Sensibilidad', value: paciente.evaluacion.piel_sensibilidad ? 'Alta' : 'Normal' },
+                { label: 'Objetivo', value: paciente.evaluacion.objetivo_principal },
+              ].map((item) => (
+                <div key={item.label} className="bg-primary-50 rounded-2xl p-3">
+                  <p className="text-[9px] font-bold text-primary-400 uppercase tracking-widest">{item.label}</p>
+                  <p className="font-bold text-primary-900 text-sm mt-1">{item.value}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        ) : (
+          <div className="text-center py-6">
+            <p className="text-3xl mb-2">📋</p>
+            <p className="text-primary-600 font-bold text-sm">Evaluación pendiente</p>
+            <p className="text-[11px] text-primary-400 mt-1 max-w-[200px] mx-auto">Tu especialista está preparando tu evaluación clínica. ¡Aparecerá aquí pronto!</p>
+          </div>
+        )}
       </div>
 
       {/* RECOMENDACIONES Y CUIDADOS POST-TX */}
@@ -622,14 +644,17 @@ function VistaTienda({ productos, loading, whatsappNumber }: { productos: any[],
               </div>
               <div className="p-4 space-y-2">
                 <h3 className="font-bold text-primary-900 text-[11px] leading-tight h-8 line-clamp-2">{p.nombre}</h3>
-                <p className="text-primary-600 font-serif font-bold text-base">${p.precio}</p>
-                <a 
-                  href={p.stripe_link || `https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hola, me interesa el producto: ' + p.nombre)}`}
-                  target="_blank"
-                  className="w-full block bg-primary-900 text-white text-[10px] font-bold py-2.5 rounded-xl text-center hover:bg-primary-800 transition"
-                >
-                  Comprar
-                </a>
+                <div className="flex justify-between items-end">
+                  <span className="font-serif font-bold text-lg text-primary-600">${p.precio} MXN</span>
+                  <a
+                    href={p.stripe_link || `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola, me interesa comprar el producto: ${p.nombre} que vi en la tienda de la clínica.`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="bg-primary-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-primary-800 transition"
+                  >
+                    Lo quiero
+                  </a>
+                </div>
               </div>
             </div>
           ))}

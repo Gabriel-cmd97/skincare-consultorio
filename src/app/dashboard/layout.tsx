@@ -165,10 +165,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link
               key={link.href}
               href={link.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-3 py-3 rounded-xl font-medium transition-all ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
                 isActive(link.href)
-                  ? 'bg-primary-600 text-white'
+                  ? 'bg-primary-600 text-white shadow-md'
                   : 'text-primary-300 hover:bg-primary-800 hover:text-white'
               }`}
             >

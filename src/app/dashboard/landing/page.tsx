@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabase';
 
-type Section = 'hero' | 'servicios' | 'proceso' | 'testimonios' | 'especialista' | 'ubicacion';
+type Section = 'hero' | 'servicios' | 'proceso' | 'testimonios' | 'especialista' | 'ubicacion' | 'cita';
 
 const SECTIONS: { id: Section; label: string; emoji: string }[] = [
   { id: 'hero', label: 'Hero', emoji: '🏠' },
@@ -12,6 +12,7 @@ const SECTIONS: { id: Section; label: string; emoji: string }[] = [
   { id: 'testimonios', label: 'Testimonios', emoji: '⭐' },
   { id: 'especialista', label: 'Especialista', emoji: '👩‍⚕️' },
   { id: 'ubicacion', label: 'Ubicación', emoji: '📍' },
+  { id: 'cita', label: 'Agendar Cita', emoji: '📅' },
 ];
 
 interface ServicioItem { titulo: string; descripcion: string; }
@@ -69,6 +70,13 @@ export default function LandingEditorPage() {
   // --- Sección Ubicación ---
   const [ubicacion, setUbicacion] = useState({ titulo: 'Tu clínica de confianza en Toluca', direccion: 'Toluca de Lerdo, Estado de México', horario: 'Lunes a Viernes: 9:00 am - 6:00 pm\nSábados: Previa cita', contacto: '', googleMapsUrl: '' });
 
+  // --- Sección Agendar Cita ---
+  const [citaInfo, setCitaInfo] = useState({
+    titulo: 'Empieza tu | transformación | hoy',
+    descripcion: 'Cada piel es única. Agenda una valoración completa para diseñar un protocolo personalizado a tus necesidades.',
+    beneficios: 'Atención clínica personalizada\nTecnología de última generación\nSeguimiento profesional continuo'
+  });
+
   useEffect(() => {
     loadData();
   }, []);
@@ -83,6 +91,7 @@ export default function LandingEditorPage() {
       if (config.testimonios_content) try { setTestimonios(JSON.parse(config.testimonios_content)); } catch(e){}
       if (config.especialista_info) try { setEspecialista(JSON.parse(config.especialista_info)); } catch(e){}
       if (config.ubicacion_info) try { setUbicacion(prev => ({ ...prev, ...JSON.parse(config.ubicacion_info) })); } catch(e){}
+      if (config.cita_info) try { setCitaInfo(JSON.parse(config.cita_info)); } catch(e){}
       
       // Load visibility flags
       if (config.landing_servicios !== undefined) setShowServicios(config.landing_servicios === 'true');
@@ -104,6 +113,7 @@ export default function LandingEditorPage() {
         { clave: 'testimonios_content', valor: JSON.stringify(testimonios) },
         { clave: 'especialista_info', valor: JSON.stringify(especialista) },
         { clave: 'ubicacion_info', valor: JSON.stringify(ubicacion) },
+        { clave: 'cita_info', valor: JSON.stringify(citaInfo) },
       ];
       for (const u of updates) {
         const { error } = await supabase.from('configuracion').upsert(u, { onConflict: 'clave' });
@@ -368,6 +378,35 @@ export default function LandingEditorPage() {
                       <iframe src={ubicacion.googleMapsUrl} className="w-full h-full border-0" loading="lazy"></iframe>
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ---- AGENDAR CITA ---- */}
+          {activeTab === 'cita' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-bold text-primary-900 mb-1">Sección Agendar Cita</h2>
+                <p className="text-sm text-primary-400">Personaliza el texto de la sección donde los pacientes llenan el formulario de cita.</p>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className={labelCls}>Título Principal</label>
+                  <input type="text" value={citaInfo.titulo} onChange={e => setCitaInfo({...citaInfo, titulo: e.target.value})} className={inputCls} placeholder="Empieza tu | transformación | hoy" />
+                  <div className="mt-2 p-3 bg-amber-50 rounded-xl border border-amber-100 text-xs text-amber-700">
+                    <p>💡 <strong>Tip:</strong> Usa el símbolo <code className="bg-white px-1.5 py-0.5 rounded border font-bold">|</code> para separar el texto. El texto entre los dos <code className="bg-white px-1.5 py-0.5 rounded border font-bold">|</code> se mostrará en color de acento y cursiva.</p>
+                    <p className="mt-1">Ejemplo: <strong>Empieza tu | transformación | hoy</strong></p>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls}>Descripción</label>
+                  <textarea value={citaInfo.descripcion} onChange={e => setCitaInfo({...citaInfo, descripcion: e.target.value})} rows={3} className={inputCls} placeholder="Cada piel es única. Agenda una valoración completa..." />
+                </div>
+                <div>
+                  <label className={labelCls}>Beneficios (Lista)</label>
+                  <textarea value={citaInfo.beneficios} onChange={e => setCitaInfo({...citaInfo, beneficios: e.target.value})} rows={4} className={inputCls} placeholder={'Atención clínica personalizada\nTecnología de última generación\nSeguimiento profesional continuo'} />
+                  <p className="text-xs text-primary-400 mt-1">Usa Enter para separar cada beneficio de la lista.</p>
                 </div>
               </div>
             </div>

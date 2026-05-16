@@ -56,6 +56,7 @@ export default async function Home() {
   let heroInfo = { titulo: 'Tu piel merece un enfoque clínico', subtitulo: 'Tratamientos especializados en alteraciones de la piel y tejidos en Toluca. Cuidado profesional con base científica para resultados reales.', badge: 'Especialidad en Fisioterapia Dermatofuncional' };
   let especialistaInfo = { titulo: 'Lic. en Fisioterapia', descripcion: 'Con especialidad en Fisioterapia Dermatofuncional. Mi pasión es devolverle la salud y funcionalidad a tu piel a través de tratamientos con rigor científico y tecnología de vanguardia.', instagram: 'lr_fisderm' };
   let ubicacionInfo = { titulo: 'Tu clínica de confianza en Toluca', direccion: 'Toluca de Lerdo, Estado de México', horario: 'Lunes a Viernes: 9:00 am - 6:00 pm\nSábados: Previa cita', contacto: '', googleMapsUrl: '' };
+  let citaInfo = { titulo: 'Empieza tu | transformación | hoy', descripcion: 'Cada piel es única. Agenda una valoración completa para diseñar un protocolo personalizado a tus necesidades.', beneficios: 'Atención clínica personalizada\nTecnología de última generación\nSeguimiento profesional continuo' };
   
   if (config.hero_info) try { heroInfo = { ...heroInfo, ...JSON.parse(config.hero_info) }; } catch(e){}
   if (config.servicios_content) try { servicios = JSON.parse(config.servicios_content); } catch(e){}
@@ -63,6 +64,7 @@ export default async function Home() {
   if (config.testimonios_content) try { testimonios = JSON.parse(config.testimonios_content); } catch(e){}
   if (config.especialista_info) try { especialistaInfo = { ...especialistaInfo, ...JSON.parse(config.especialista_info) }; } catch(e){}
   if (config.ubicacion_info) try { ubicacionInfo = { ...ubicacionInfo, ...JSON.parse(config.ubicacion_info) }; } catch(e){}
+  if (config.cita_info) try { citaInfo = { ...citaInfo, ...JSON.parse(config.cita_info) }; } catch(e){}
 
   // Separar título del hero para estilos (primera parte normal, segunda parte cursiva)
   const heroParts = heroInfo.titulo.split('|');
@@ -298,18 +300,20 @@ export default async function Home() {
           <div className="bg-primary-900 rounded-3xl lg:rounded-[50px] overflow-hidden shadow-2xl flex flex-col lg:grid lg:grid-cols-2">
             <div className="p-8 sm:p-12 md:p-20 space-y-6 lg:space-y-8 flex flex-col justify-center">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white leading-tight">
-                Empieza tu <br /><span className="italic text-primary-300">transformación</span> hoy
+                {citaInfo.titulo.split('|').map((part, idx, arr) => (
+                  <React.Fragment key={idx}>
+                    {idx === 1 && arr.length >= 2 ? <span className="italic text-primary-300">{part.trim()}</span> : part.trim()}
+                    {idx === 0 && arr.length >= 2 ? ' ' : ''}
+                    {idx === 1 && arr.length === 3 ? ' ' : ''}
+                  </React.Fragment>
+                ))}
               </h2>
               <p className="text-primary-100/70 text-lg font-light leading-relaxed">
-                Cada piel es única. Agenda una valoración completa para diseñar un protocolo personalizado a tus necesidades.
+                {citaInfo.descripcion}
               </p>
               
               <div className="space-y-6 pt-4">
-                {[
-                  "Atención clínica personalizada",
-                  "Tecnología de última generación",
-                  "Seguimiento profesional continuo"
-                ].map((item, i) => (
+                {citaInfo.beneficios.split('\n').filter(Boolean).map((item, i) => (
                   <div key={i} className="flex items-center gap-4 text-primary-50">
                     <div className="w-6 h-6 rounded-full bg-primary-500/20 flex items-center justify-center border border-primary-500/30">
                       <svg className="w-4 h-4 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>

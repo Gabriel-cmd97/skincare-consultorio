@@ -67,7 +67,7 @@ export default function LandingEditorPage() {
   const [especialista, setEspecialista] = useState({ titulo: 'Lic. en Fisioterapia', descripcion: 'Con especialidad en Fisioterapia Dermatofuncional. Mi pasión es devolverle la salud y funcionalidad a tu piel a través de tratamientos con rigor científico y tecnología de vanguardia.', instagram: 'lr_fisderm' });
 
   // --- Sección Ubicación ---
-  const [ubicacion, setUbicacion] = useState({ titulo: 'Tu clínica de confianza en Toluca', direccion: 'Toluca de Lerdo, Estado de México', horario: 'Lunes a Viernes: 9:00 am - 6:00 pm\nSábados: Previa cita', googleMapsUrl: '' });
+  const [ubicacion, setUbicacion] = useState({ titulo: 'Tu clínica de confianza en Toluca', direccion: 'Toluca de Lerdo, Estado de México', horario: 'Lunes a Viernes: 9:00 am - 6:00 pm\nSábados: Previa cita', contacto: '', googleMapsUrl: '' });
 
   useEffect(() => {
     loadData();
@@ -345,6 +345,11 @@ export default function LandingEditorPage() {
                   <label className={labelCls}>Horario de Atención</label>
                   <textarea value={ubicacion.horario} onChange={e => setUbicacion({...ubicacion, horario: e.target.value})} rows={3} className={inputCls} placeholder={'Lunes a Viernes: 9:00 am - 6:00 pm\nSábados: Previa cita'} />
                   <p className="text-xs text-primary-400 mt-1">Usa Enter para separar líneas de horario.</p>
+                </div>
+                <div>
+                  <label className={labelCls}>Contacto</label>
+                  <textarea value={ubicacion.contacto} onChange={e => setUbicacion({...ubicacion, contacto: e.target.value})} rows={3} className={inputCls} placeholder={'WhatsApp: +52...\nIG: @lr_fisderm\nCorreo: hola@clinica.com'} />
+                  <p className="text-xs text-primary-400 mt-1">Usa Enter para separar diferentes medios de contacto. Si lo dejas vacío, se usará la info por defecto (WhatsApp del sistema e IG de especialista).</p>
                 </div>
                 <div>
                   <label className={labelCls}>Google Maps Embed URL</label>

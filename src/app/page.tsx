@@ -55,7 +55,7 @@ export default async function Home() {
   let testimonios = defaultTestimonios;
   let heroInfo = { titulo: 'Tu piel merece un enfoque clínico', subtitulo: 'Tratamientos especializados en alteraciones de la piel y tejidos en Toluca. Cuidado profesional con base científica para resultados reales.', badge: 'Especialidad en Fisioterapia Dermatofuncional' };
   let especialistaInfo = { titulo: 'Lic. en Fisioterapia', descripcion: 'Con especialidad en Fisioterapia Dermatofuncional. Mi pasión es devolverle la salud y funcionalidad a tu piel a través de tratamientos con rigor científico y tecnología de vanguardia.', instagram: 'lr_fisderm' };
-  let ubicacionInfo = { titulo: 'Tu clínica de confianza en Toluca', direccion: 'Toluca de Lerdo, Estado de México', horario: 'Lunes a Viernes: 9:00 am - 6:00 pm\\nSábados: Previa cita', googleMapsUrl: '' };
+  let ubicacionInfo = { titulo: 'Tu clínica de confianza en Toluca', direccion: 'Toluca de Lerdo, Estado de México', horario: 'Lunes a Viernes: 9:00 am - 6:00 pm\nSábados: Previa cita', contacto: '', googleMapsUrl: '' };
   
   if (config.hero_info) try { heroInfo = { ...heroInfo, ...JSON.parse(config.hero_info) }; } catch(e){}
   if (config.servicios_content) try { servicios = JSON.parse(config.servicios_content); } catch(e){}
@@ -365,9 +365,13 @@ export default async function Home() {
                     </div>
                     <div>
                       <h4 className="font-bold text-lg mb-1">Contacto</h4>
-                      <p className="text-stone-400 font-light leading-relaxed">
-                        WhatsApp: {config.whatsapp ? `+${config.whatsapp}` : 'No disponible'}<br/>
-                        IG: @{especialistaInfo.instagram.replace('@', '')}
+                      <p className="text-stone-400 font-light leading-relaxed whitespace-pre-line">
+                        {ubicacionInfo.contacto ? ubicacionInfo.contacto : (
+                          <>
+                            WhatsApp: {config.whatsapp ? `+${config.whatsapp}` : 'No disponible'}<br/>
+                            IG: @{especialistaInfo.instagram.replace('@', '')}
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>

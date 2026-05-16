@@ -438,6 +438,27 @@ export default function AdminSoportePage() {
                 ))}
               </div>
             </section>
+            
+            <section className="bg-slate-800/50 border border-slate-700/50 rounded-3xl p-6 space-y-6">
+              <div className="flex items-center gap-2 text-fuchsia-400">
+                <ExternalLink className="w-5 h-5" />
+                <h2 className="font-bold uppercase tracking-wider text-sm">Accesos VIP (Soporte Técnico)</h2>
+              </div>
+              <p className="text-xs text-slate-400">Accede directamente a los editores visuales del sistema para configurar la marca y el contenido de tu cliente.</p>
+              
+              <div className="space-y-3">
+                <a href="/dashboard/configuracion" target="_blank" className="w-full flex items-center justify-between p-4 rounded-2xl border bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800 transition-all group">
+                  <span className="text-sm font-medium">🎨 Configuración de Marca (Color/Logo)</span>
+                  <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-fuchsia-400" />
+                </a>
+                <a href="/dashboard/landing" target="_blank" className="w-full flex items-center justify-between p-4 rounded-2xl border bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800 transition-all group">
+                  <span className="text-sm font-medium">📝 Editor de Página Principal</span>
+                  <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-fuchsia-400" />
+                </a>
+              </div>
+              <p className="text-[10px] text-slate-500 text-center">* Estos paneles requieren tener la sesión del especialista activa en esta ventana.</p>
+            </section>
+
           </div>
 
         </div>

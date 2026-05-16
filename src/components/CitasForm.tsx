@@ -20,6 +20,7 @@ export default function CitasForm() {
   const [tratamiento, setTratamiento] = useState("Limpieza Facial");
   const [esPrimeraVez, setEsPrimeraVez] = useState("si");
   const [notasAdicionales, setNotasAdicionales] = useState("");
+  const [horasOcupadas, setHorasOcupadas] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -31,6 +32,39 @@ export default function CitasForm() {
   useEffect(() => {
     formLoadTime.current = Date.now();
   }, []);
+
+  // Consultar horas ocupadas cuando el paciente elige una fecha
+  useEffect(() => {
+    async function fetchHorasOcupadas() {
+      if (!fecha) {
+        setHorasOcupadas([]);
+        return;
+      }
+      try {
+        // Rango del día seleccionado
+        const start = new Date(`${fecha}T00:00:00`).toISOString();
+        const end = new Date(`${fecha}T23:59:59`).toISOString();
+        
+        const { data } = await supabase
+          .from('citas')
+          .select('fecha_hora')
+          .gte('fecha_hora', start)
+          .lte('fecha_hora', end)
+          .neq('estado', 'cancelada'); // Las canceladas vuelven a estar libres
+          
+        if (data) {
+          const ocupadas = data.map((cita) => {
+            const d = new Date(cita.fecha_hora);
+            return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+          });
+          setHorasOcupadas(ocupadas);
+        }
+      } catch (error) {
+        console.error("Error al obtener disponibilidad:", error);
+      }
+    }
+    fetchHorasOcupadas();
+  }, [fecha]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -288,10 +322,10 @@ export default function CitasForm() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all bg-white"
             >
               <option value="">Selecciona un horario</option>
-              <option value="09:00">09:00 AM</option>
-              <option value="11:20">11:20 AM</option>
-              <option value="13:40">01:40 PM</option>
-              <option value="16:00">04:00 PM</option>
+              <option value="09:00" disabled={horasOcupadas.includes("09:00")}>09:00 AM {horasOcupadas.includes("09:00") && "(Ocupado)"}</option>
+              <option value="11:20" disabled={horasOcupadas.includes("11:20")}>11:20 AM {horasOcupadas.includes("11:20") && "(Ocupado)"}</option>
+              <option value="13:40" disabled={horasOcupadas.includes("13:40")}>01:40 PM {horasOcupadas.includes("13:40") && "(Ocupado)"}</option>
+              <option value="16:00" disabled={horasOcupadas.includes("16:00")}>04:00 PM {horasOcupadas.includes("16:00") && "(Ocupado)"}</option>
             </select>
             <p className="text-xs text-gray-500 mt-1">L a S, 9am - 6pm</p>
           </div>

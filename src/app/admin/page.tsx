@@ -8,11 +8,22 @@ import {
   MessageSquare, 
   Globe, 
   Layout, 
+import { 
+  Settings, 
+  MessageSquare, 
+  Globe, 
+  Layout, 
   Save, 
   ShieldCheck, 
   RefreshCw,
-  Terminal
+  Terminal,
+  Lock,
+  ArrowRight,
+  Database,
+  Download,
+  ToggleLeft
 } from 'lucide-react';
+import { verifyAdminPassword } from '@/actions/admin';
 
 interface ConfigItem {
   clave: string;
@@ -32,15 +43,55 @@ export default function AdminSoportePage() {
   const [landingEspecialista, setLandingEspecialista] = useState(true);
   const [landingUbicacion, setLandingUbicacion] = useState(true);
 
+  // Módulos SaaS
+  const [moduleStore, setModuleStore] = useState(true);
+  const [moduleTips, setModuleTips] = useState(true);
+
+  // Status
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testingWA, setTestingWA] = useState(false);
   const [waLogs, setWaLogs] = useState<string[]>([]);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   useEffect(() => {
-    fetchConfig();
+    // Check session storage on mount
+    const authStatus = sessionStorage.getItem('admin_auth');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+      fetchConfig();
+    } else {
+      setLoading(false);
+    }
   }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsAuthenticating(true);
+    setAuthError('');
+    
+    try {
+      const result = await verifyAdminPassword(password);
+      if (result.success) {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('admin_auth', 'true');
+        fetchConfig();
+      } else {
+        setAuthError('Contraseña incorrecta.');
+      }
+    } catch (err) {
+      setAuthError('Error de conexión.');
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
 
   async function fetchConfig() {
     try {
@@ -59,6 +110,9 @@ export default function AdminSoportePage() {
           if (item.clave === 'landing_testimonios') setLandingTestimonios(item.valor === 'true');
           if (item.clave === 'landing_especialista') setLandingEspecialista(item.valor === 'true');
           if (item.clave === 'landing_ubicacion') setLandingUbicacion(item.valor === 'true');
+          
+          if (item.clave === 'module_store') setModuleStore(item.valor === 'true');
+          if (item.clave === 'module_tips') setModuleTips(item.valor === 'true');
         });
       }
     } catch (error) {
@@ -81,6 +135,8 @@ export default function AdminSoportePage() {
       { clave: 'landing_testimonios', valor: String(landingTestimonios) },
       { clave: 'landing_especialista', valor: String(landingEspecialista) },
       { clave: 'landing_ubicacion', valor: String(landingUbicacion) },
+      { clave: 'module_store', valor: String(moduleStore) },
+      { clave: 'module_tips', valor: String(moduleTips) },
     ];
 
     try {
@@ -99,10 +155,84 @@ export default function AdminSoportePage() {
     }
   }
 
+  const handleExportData = async () => {
+    setExporting(true);
+    try {
+      const { data: pacientes, error: pError } = await supabase.from('pacientes').select('*');
+      const { data: citas, error: cError } = await supabase.from('citas').select('*');
+      
+      if (pError || cError) throw new Error('Error al descargar datos');
+
+      const exportData = {
+        fecha_exportacion: new Date().toISOString(),
+        pacientes: pacientes || [],
+        citas: citas || []
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `respaldo_clinica_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      setMessage({ type: 'success', text: 'Respaldo descargado con éxito.' });
+    } catch (err) {
+      console.error(err);
+      setMessage({ type: 'error', text: 'No se pudo generar el respaldo.' });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-slate-800 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
+          <div className="p-8 text-center space-y-2 border-b border-slate-700/50 bg-slate-800/50">
+            <div className="w-16 h-16 bg-blue-500/10 text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
+              <ShieldCheck className="w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-100">Acceso Restringido</h1>
+            <p className="text-slate-400 text-sm">Panel de soporte técnico y administración.</p>
+          </div>
+          <form onSubmit={handleLogin} className="p-8 space-y-6">
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Contraseña Maestra</label>
+              <div className="relative">
+                <Lock className="w-5 h-5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+              {authError && <p className="text-rose-400 text-sm mt-2 font-medium">{authError}</p>}
+            </div>
+            <button
+              type="submit"
+              disabled={isAuthenticating || !password}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {isAuthenticating ? <RefreshCw className="w-5 h-5 animate-spin" /> : 'Ingresar al Panel'}
+              {!isAuthenticating && <ArrowRight className="w-5 h-5" />}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <RefreshCw className="w-8 h-8 text-slate-400 animate-spin" />
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
       </div>
     );
   }
@@ -265,6 +395,52 @@ export default function AdminSoportePage() {
                     <b>Nota de Soporte:</b> Estos cambios afectan directamente la visibilidad de componentes en la página pública. Desactivar secciones innecesarias mejora la velocidad de carga.
                   </p>
                 </div>
+              </div>
+            </section>
+            
+            <section className="bg-slate-800/50 border border-slate-700/50 rounded-3xl p-6 space-y-6">
+              <div className="flex items-center gap-2 text-emerald-400">
+                <Database className="w-5 h-5" />
+                <h2 className="font-bold uppercase tracking-wider text-sm">Respaldo y Mantenimiento</h2>
+              </div>
+              <p className="text-xs text-slate-400">Descarga una copia completa de seguridad en formato JSON. Incluye pacientes y citas.</p>
+              <button
+                onClick={handleExportData}
+                disabled={exporting}
+                className="w-full py-3 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition"
+              >
+                {exporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                {exporting ? 'Generando...' : 'Exportar Base de Datos'}
+              </button>
+            </section>
+            
+            <section className="bg-slate-800/50 border border-slate-700/50 rounded-3xl p-6 space-y-6">
+              <div className="flex items-center gap-2 text-purple-400">
+                <ToggleLeft className="w-5 h-5" />
+                <h2 className="font-bold uppercase tracking-wider text-sm">Módulos SaaS (Dashboard)</h2>
+              </div>
+              <p className="text-xs text-slate-400">Activa o desactiva funciones del panel del especialista según el plan contratado.</p>
+              
+              <div className="space-y-3">
+                {[
+                  { label: 'Catálogo de Productos', state: moduleStore, setter: setModuleStore },
+                  { label: 'Rutinas y Tips', state: moduleTips, setter: setModuleTips },
+                ].map((s, i) => (
+                  <button
+                    key={i}
+                    onClick={() => s.setter(!s.state)}
+                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                      s.state 
+                        ? 'bg-purple-500/10 border-purple-500/50 text-purple-100' 
+                        : 'bg-slate-900 border-slate-700 text-slate-500'
+                    }`}
+                  >
+                    <span className="text-sm font-medium">{s.label}</span>
+                    <div className={`w-10 h-5 rounded-full relative transition-colors ${s.state ? 'bg-purple-500' : 'bg-slate-700'}`}>
+                      <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${s.state ? 'left-6' : 'left-1'}`} />
+                    </div>
+                  </button>
+                ))}
               </div>
             </section>
           </div>

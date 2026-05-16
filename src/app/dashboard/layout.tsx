@@ -36,6 +36,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [user, setUser] = useState<any>(null);
   const [checking, setChecking] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [moduleStore, setModuleStore] = useState(true);
+  const [moduleTips, setModuleTips] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -67,6 +69,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (count !== null) setUnreadCount(count);
     };
     fetchUnreadCount();
+
+    const fetchConfig = async () => {
+      const { data } = await supabase.from('configuracion').select('clave, valor').in('clave', ['module_store', 'module_tips']);
+      if (data) {
+        data.forEach(item => {
+          if (item.clave === 'module_store') setModuleStore(item.valor === 'true');
+          if (item.clave === 'module_tips') setModuleTips(item.valor === 'true');
+        });
+      }
+    };
+    fetchConfig();
 
     const channel = supabase
       .channel('layout_notificaciones')
@@ -140,17 +153,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Link>
           ))}
 
-          <div className="pt-5 pb-2 px-4 text-[10px] font-bold text-primary-500 uppercase tracking-widest">
+          <div className="pt-4 pb-2 px-3 text-[10px] font-bold text-primary-500 uppercase tracking-widest border-t border-primary-800 mt-2">
             Contenido
           </div>
-
-          {CONTENT_LINKS.map((link) => (
+          
+          {CONTENT_LINKS.filter(link => {
+            if (link.href === '/dashboard/catalogo' && !moduleStore) return false;
+            if (link.href === '/dashboard/tips' && !moduleTips) return false;
+            return true;
+          }).map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+              onClick={() => setMobileMenuOpen(false)}
+              className={`flex items-center gap-3 px-3 py-3 rounded-xl font-medium transition-all ${
                 isActive(link.href)
-                  ? 'bg-primary-600 text-white shadow-md'
+                  ? 'bg-primary-600 text-white'
                   : 'text-primary-300 hover:bg-primary-800 hover:text-white'
               }`}
             >
@@ -160,7 +178,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           ))}
         </nav>
 
-        {/* Usuario + Logout */}
         <div className="p-4 border-t border-primary-800 space-y-2">
           <Link
             href="/dashboard/notificaciones"

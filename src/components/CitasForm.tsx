@@ -18,6 +18,8 @@ export default function CitasForm() {
   const [fecha, setFecha] = useState("");
   const [hora, setHora] = useState("");
   const [tratamiento, setTratamiento] = useState("Limpieza Facial");
+  const [esPrimeraVez, setEsPrimeraVez] = useState("si");
+  const [notasAdicionales, setNotasAdicionales] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -96,13 +98,15 @@ export default function CitasForm() {
 
       // Insertar la cita con datos sanitizados
       const { error: insertError } = await supabase.from("citas").insert([
-        {
-          paciente_nombre: cleanNombre,
-          paciente_email: '',
-          paciente_telefono: cleanTelefono,
-          fecha_hora: fechaHora,
-          tipo_tratamiento: sanitizeText(tratamiento, 50),
-        },
+          {
+            paciente_nombre: cleanNombre,
+            paciente_email: '',
+            paciente_telefono: cleanTelefono,
+            fecha_hora: fechaHora,
+            tipo_tratamiento: sanitizeText(tratamiento, 50),
+            es_primera_vez: esPrimeraVez === "si",
+            notas_adicionales: sanitizeText(notasAdicionales, 500) || null,
+          },
       ]);
 
       if (insertError) {
@@ -133,6 +137,8 @@ export default function CitasForm() {
         setFecha("");
         setHora("");
         setTratamiento("Limpieza Facial");
+        setEsPrimeraVez("si");
+        setNotasAdicionales("");
         formLoadTime.current = Date.now(); // Reiniciar timer
       }
     } catch (error: any) {
@@ -210,6 +216,48 @@ export default function CitasForm() {
             <option value="Tratamiento Acné">Tratamiento para Acné</option>
             <option value="Valoracion">Valoración General</option>
           </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">¿Es tu primera vez en consulta?</label>
+          <div className="flex items-center space-x-6">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                name="primeraVez"
+                value="si"
+                checked={esPrimeraVez === "si"}
+                onChange={(e) => setEsPrimeraVez(e.target.value)}
+                className="text-primary-600 focus:ring-primary-500 w-4 h-4"
+              />
+              <span className="text-gray-700 text-sm">Sí</span>
+            </label>
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                name="primeraVez"
+                value="no"
+                checked={esPrimeraVez === "no"}
+                onChange={(e) => setEsPrimeraVez(e.target.value)}
+                className="text-primary-600 focus:ring-primary-500 w-4 h-4"
+              />
+              <span className="text-gray-700 text-sm">No, ya he asistido</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            ¿Padeces alguna enfermedad crónica, alergia o tomas medicamentos? <span className="text-gray-400 font-normal">(Opcional)</span>
+          </label>
+          <textarea
+            maxLength={500}
+            rows={2}
+            value={notasAdicionales}
+            onChange={(e) => setNotasAdicionales(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all resize-none"
+            placeholder="Ej. Soy diabética, o soy alérgica a la aspirina..."
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

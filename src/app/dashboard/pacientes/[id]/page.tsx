@@ -4,67 +4,23 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabase';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Edit3, X, Save, Loader2, Mail, Copy, Trash2 } from 'lucide-react';
+import { Edit3, X, Save, Loader2, Mail, Copy, Trash2, Camera } from 'lucide-react';
 import { sanitizeText } from '@/utils/security';
 
-// ---- Datos ficticios por ID ----
-const PACIENTES_MOCK: Record<string, any> = {
-  p1: {
-    nombre: 'Ana', apellidos: 'García Ruiz',
-    email: 'ana.garcia@email.com', telefono: '722-555-0101',
-    fecha_nacimiento: '1990-05-15', created_at: '2026-03-10T10:00:00Z',
-    fototipo: 'III', hidratacion: 'Media', elasticidad: 'Alta', sensibilidad: 'Baja',
-    objetivo: 'Estético', alergias: ['Fragancia sintética'],
-    tratamiento: 'Anti-manchas con Vitamina C',
-    protocolo: [
-      'Limpieza micelar doble por la noche',
-      'Sérum Vitamina C 15% cada mañana',
-      'Protector solar SPF 50+ obligatorio',
-      'Limpieza profunda mensual en consultorio',
-      'Evitar exposición solar prolongada',
-    ],
-    citas: [
-      { fecha: '10 Mar 2026', tipo: 'Valoración Inicial', estado: 'completada', notas: 'Primera consulta. Se observan manchas leves en zona T.' },
-      { fecha: '28 Abr 2026', tipo: 'Limpieza Profunda', estado: 'confirmada', notas: '' },
-      { fecha: '2 Jun 2026', tipo: 'Seguimiento Anti-manchas', estado: 'pendiente', notas: '' },
-    ],
-    notas: 'Paciente con muy buena adherencia al protocolo. Se observa mejoría del 30% en hiperpigmentación. Continuar con tratamiento actual.',
-    fotos: [],
-  },
-  p2: {
-    nombre: 'Carlos', apellidos: 'Martínez López',
-    email: 'carlos.mtz@email.com', telefono: '722-555-0202',
-    fecha_nacimiento: '1985-11-22', created_at: '2026-03-15T10:00:00Z',
-    fototipo: 'IV', hidratacion: 'Baja', elasticidad: 'Media', sensibilidad: 'Alta',
-    objetivo: 'Funcional', alergias: [],
-    tratamiento: 'Control Acné Activo',
-    protocolo: [
-      'Limpiador con ácido salicílico 2% dos veces al día',
-      'Niacinamida 10% después del tónico',
-      'No aplicar aceites ni cremas pesadas',
-      'Peeling BHA mensual en consultorio',
-      'Cambiar funda de almohada cada 3 días',
-    ],
-    citas: [
-      { fecha: '15 Mar 2026', tipo: 'Valoración Inicial', estado: 'completada', notas: 'Acné comedogénico moderado en frente y mentón.' },
-      { fecha: '28 Abr 2026', tipo: 'Peeling Químico BHA', estado: 'pendiente', notas: '' },
-    ],
-    notas: 'Piel oleosa con tendencia comedogénica. Responde bien al BHA. Revisar dieta en próxima consulta.',
-    fotos: [],
-  },
-};
+const TABS = [
+  { id: 'antecedentes', label: 'Datos y Antecedentes' },
+  { id: 'evaluacion', label: 'Evaluación y Recomendaciones' },
+  { id: 'historial', label: 'Historial de Citas' }
+];
 
 const FALLBACK_PACIENTE = {
-  nombre: 'Paciente', apellidos: 'Ejemplo',
-  email: 'ejemplo@email.com', telefono: '722-555-0000',
+  nombre: 'Cargando...', apellidos: '',
+  email: '', telefono: '',
   fecha_nacimiento: '1990-01-01', created_at: new Date().toISOString(),
-  fototipo: 'II', hidratacion: 'Media', elasticidad: 'Media', sensibilidad: 'Baja',
-  objetivo: 'Estético', alergias: [],
-  tratamiento: 'Protocolo General',
-  protocolo: ['Limpieza suave diaria', 'Hidratante sin fragancia', 'Protector solar SPF 30+'],
-  citas: [],
-  notas: '',
-  fotos: [],
+  alergias: [],
+  antecedentes_medicos: {}, antecedentes_gineco: {}, antecedentes_esteticos: {},
+  rutina_actual: {}, habitos: {},
+  citas: [], notas: '', fotos: [],
 };
 
 const ESTADO_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
@@ -78,32 +34,45 @@ export default function ExpedientePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [paciente, setPaciente] = useState<any>(null);
+  const [evaluacion, setEvaluacion] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [notas, setNotas] = useState('');
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState('antecedentes');
 
-  // Estados para la Evaluación Clínica
+  // Modal Antecedentes
+  const [isAntecedentesModalOpen, setIsAntecedentesModalOpen] = useState(false);
+  const [antData, setAntData] = useState<any>({});
+
+  // Modal Evaluación
   const [isEvalModalOpen, setIsEvalModalOpen] = useState(false);
-  const [evalData, setEvalData] = useState<any>(null);
+  const [evalData, setEvalData] = useState<any>({});
 
   useEffect(() => {
     async function fetchPaciente() {
       try {
-        const { data, error } = await supabase
+        const { data: pacData, error: pacError } = await supabase
           .from('pacientes')
           .select('*')
           .eq('id', id)
           .single();
 
-        if (error || !data) throw error;
-        // Mezclamos con fallback clínico si viene vacío de la DB
-        const fullData = { ...FALLBACK_PACIENTE, ...data };
-        setPaciente(fullData);
-        setNotas(fullData.notas || '');
-      } catch {
-        const mock = PACIENTES_MOCK[id as string] || FALLBACK_PACIENTE;
-        setPaciente(mock);
-        setNotas(mock.notas || '');
+        if (pacError && pacError.code !== 'PGRST116') throw pacError;
+
+        const { data: evData, error: evError } = await supabase
+          .from('evaluaciones_clinicas')
+          .select('*')
+          .eq('paciente_id', id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        const pData = pacData || FALLBACK_PACIENTE;
+        setPaciente({ ...FALLBACK_PACIENTE, ...pData });
+        setEvaluacion(evData || {});
+        setNotas(pData.notas || '');
+      } catch (err) {
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -111,15 +80,60 @@ export default function ExpedientePage() {
     fetchPaciente();
   }, [id]);
 
+  const handleOpenAntecedentesModal = () => {
+    setAntData({
+      edad: paciente.edad || '',
+      ocupacion: paciente.ocupacion || '',
+      antecedentes_medicos: paciente.antecedentes_medicos || {},
+      antecedentes_gineco: paciente.antecedentes_gineco || {},
+      antecedentes_esteticos: paciente.antecedentes_esteticos || {},
+      rutina_actual: paciente.rutina_actual || {},
+      habitos: paciente.habitos || {}
+    });
+    setIsAntecedentesModalOpen(true);
+  };
+
+  const handleSaveAntecedentes = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('pacientes').update({
+        edad: antData.edad ? parseInt(antData.edad) : null,
+        ocupacion: sanitizeText(antData.ocupacion, 100),
+        antecedentes_medicos: antData.antecedentes_medicos,
+        antecedentes_gineco: antData.antecedentes_gineco,
+        antecedentes_esteticos: antData.antecedentes_esteticos,
+        rutina_actual: antData.rutina_actual,
+        habitos: antData.habitos
+      }).eq('id', id);
+
+      if (error) throw error;
+      setPaciente({ ...paciente, ...antData });
+      setIsAntecedentesModalOpen(false);
+    } catch (err) {
+      alert('Error guardando antecedentes.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleOpenEvalModal = () => {
+    // Si no hay evaluación previa, pre-llenar plantillas
+    const templateReacciones = "Enrojecimiento leve.\nSensibilidad.\nResequedad o ligera descamación.\nAparición de brotes leves (proceso de renovación cutánea).";
+    const templateCuidados = "Evitar exposición directa al sol.\nNo tocar, exprimir o manipular la piel.\nEvitar maquillaje (mínimo 24 horas).\nNo usar productos irritantes (ácidos, exfoliantes, retinol).\nEvitar calor excesivo (vapor, ejercicio intenso).";
+
     setEvalData({
-      fototipo: paciente.fototipo || 'III',
-      hidratacion: paciente.hidratacion || 'Media',
-      elasticidad: paciente.elasticidad || 'Media',
-      sensibilidad: paciente.sensibilidad || 'Baja',
-      objetivo: paciente.objetivo || 'Estético',
-      tratamiento: paciente.tratamiento || '',
-      protocolo: paciente.protocolo?.join('\n') || ''
+      motivo_consulta: evaluacion.motivo_consulta || '',
+      que_mejorar: evaluacion.que_mejorar || '',
+      fototipo: evaluacion.piel_fototipo || 'III',
+      hidratacion: evaluacion.piel_hidratacion || 'media',
+      elasticidad: evaluacion.piel_elasticidad || 'media',
+      sensibilidad: evaluacion.piel_sensibilidad || false,
+      objetivo: evaluacion.objetivo_principal || 'Estético',
+      cuidados_casa: evaluacion.cuidados_casa || templateCuidados,
+      reacciones_normales: evaluacion.reacciones_normales || templateReacciones,
+      rutina_manana: evaluacion.rutina_manana || '',
+      rutina_noche: evaluacion.rutina_noche || '',
     });
     setIsEvalModalOpen(true);
   };
@@ -127,443 +141,348 @@ export default function ExpedientePage() {
   const handleSaveEval = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    
-    const protocolArray = evalData.protocolo.split('\n').filter((p: string) => p.trim() !== '').map((p: string) => sanitizeText(p, 300));
-    
-    const updatePayload = {
-      fototipo: sanitizeText(evalData.fototipo, 10),
-      hidratacion: sanitizeText(evalData.hidratacion, 20),
-      elasticidad: sanitizeText(evalData.elasticidad, 20),
-      sensibilidad: sanitizeText(evalData.sensibilidad, 20),
-      objetivo: sanitizeText(evalData.objetivo, 30),
-      tratamiento: sanitizeText(evalData.tratamiento, 200),
-      protocolo: protocolArray
-    };
-
     try {
-      const { error } = await supabase
-        .from('pacientes')
-        .update(updatePayload as any)
-        .eq('id', id);
+      const payload = {
+        paciente_id: id,
+        motivo_consulta: sanitizeText(evalData.motivo_consulta, 200),
+        que_mejorar: sanitizeText(evalData.que_mejorar, 200),
+        piel_fototipo: evalData.fototipo,
+        piel_hidratacion: evalData.hidratacion,
+        piel_elasticidad: evalData.elasticidad,
+        piel_sensibilidad: evalData.sensibilidad,
+        objetivo_principal: evalData.objetivo,
+        cuidados_casa: sanitizeText(evalData.cuidados_casa, 1000),
+        reacciones_normales: sanitizeText(evalData.reacciones_normales, 1000),
+        rutina_manana: sanitizeText(evalData.rutina_manana, 1000),
+        rutina_noche: sanitizeText(evalData.rutina_noche, 1000),
+      };
 
-      if (error) throw error;
+      if (evaluacion.id) {
+        await supabase.from('evaluaciones_clinicas').update(payload).eq('id', evaluacion.id);
+      } else {
+        await supabase.from('evaluaciones_clinicas').insert([payload]);
+      }
 
-      setPaciente({
-        ...paciente,
-        ...updatePayload
-      });
+      setEvaluacion({ ...evaluacion, ...payload });
       setIsEvalModalOpen(false);
     } catch (err) {
-      console.error('Error al guardar la evaluación:', err);
-      alert('Hubo un error al guardar los cambios en la base de datos.');
+      alert('Error guardando evaluación.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSaveNotas = async () => {
-    setSaving(true);
-    try {
-      await supabase.from('pacientes').update({ notas: sanitizeText(notas, 5000) } as any).eq('id', id);
-    } catch { /* silencioso en modo mock */ } finally {
-      setSaving(false);
-    }
-  };
-
   const handleDeletePaciente = async () => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este paciente? Esta acción no se puede deshacer y eliminará todo su historial.')) {
-      return;
-    }
-
+    if (!confirm('¿Estás seguro de eliminar este paciente?')) return;
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('pacientes')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      alert('Paciente eliminado correctamente.');
+      await supabase.from('pacientes').delete().eq('id', id);
       router.push('/dashboard/pacientes');
     } catch (err) {
-      console.error('Error al eliminar paciente:', err);
-      alert('Hubo un error al intentar eliminar al paciente.');
+      alert('Error.');
       setSaving(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
-          <p className="text-primary-400 text-sm italic">Cargando expediente...</p>
-        </div>
-      </div>
-    );
-  }
-
+  if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-10 h-10 animate-spin text-primary-500" /></div>;
   if (!paciente) return null;
 
   const iniciales = `${paciente.nombre?.[0] ?? ''}${paciente.apellidos?.[0] ?? ''}`;
-  const edad = paciente.fecha_nacimiento && paciente.fecha_nacimiento !== '1990-01-01'
-    ? Math.floor((Date.now() - new Date(paciente.fecha_nacimiento).getTime()) / (365.25 * 24 * 3600 * 1000))
-    : null;
-
-  const COLORES_AVATAR = [
-    'from-primary-400 to-primary-600',
-    'from-rose-400 to-rose-600',
-    'from-amber-400 to-amber-600',
-    'from-emerald-400 to-emerald-600',
-    'from-purple-400 to-purple-600',
-  ];
-  const colorIdx = (id?.charCodeAt(id.length - 1) ?? 0) % COLORES_AVATAR.length;
+  
+  // Toggle Helper
+  const Toggle = ({ label, checked, onChange }: { label: string, checked: boolean, onChange: (val: boolean) => void }) => (
+    <label className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition">
+      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <div className={`w-10 h-6 flex items-center rounded-full p-1 transition-colors ${checked ? 'bg-primary-500' : 'bg-gray-300'}`}>
+        <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${checked ? 'translate-x-4' : ''}`} />
+      </div>
+    </label>
+  );
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-12 relative">
-      {/* Breadcrumb + Volver */}
+    <div className="max-w-6xl mx-auto space-y-6 pb-12 relative">
       <div className="flex items-center gap-2 text-sm text-primary-400">
-        <Link href="/dashboard/pacientes" className="hover:text-primary-700 transition font-medium flex items-center gap-1">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+        <Link href="/dashboard/pacientes" className="hover:text-primary-700 font-medium flex items-center gap-1">
           Pacientes
         </Link>
         <span>/</span>
         <span className="text-primary-700 font-bold">{paciente.nombre} {paciente.apellidos}</span>
       </div>
 
-      {/* Header del expediente */}
-      <div className="bg-white rounded-[32px] border border-primary-50 shadow-sm overflow-hidden">
-        <div className={`bg-gradient-to-r ${COLORES_AVATAR[colorIdx]} p-8 flex flex-col sm:flex-row items-center sm:items-end gap-6`}>
-          <div className="w-24 h-24 bg-white/20 rounded-3xl flex items-center justify-center text-white font-serif font-bold text-4xl border-4 border-white/30 shadow-xl">
+      {/* Header */}
+      <div className="bg-white rounded-3xl border border-primary-50 shadow-sm overflow-hidden flex flex-col sm:flex-row items-center sm:items-stretch">
+        <div className="bg-gradient-to-br from-primary-400 to-primary-600 p-8 flex items-center justify-center w-full sm:w-auto">
+          <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center text-white font-serif font-bold text-4xl shadow-lg">
             {iniciales}
           </div>
-          <div className="text-center sm:text-left">
-            <h1 className="text-3xl font-serif font-bold text-white">{paciente.nombre} {paciente.apellidos}</h1>
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-2">
-              <p className="text-white/80 text-sm flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/10">
-                <Mail className="w-3.5 h-3.5" /> {paciente.email}
-              </p>
-              <button 
-                onClick={() => {
-                  navigator.clipboard.writeText(paciente.id);
-                  alert('¡Código PWA copiado!');
-                }}
-                className="text-white text-xs font-bold flex items-center gap-2 bg-primary-900/40 hover:bg-primary-900/60 px-3 py-1 rounded-full border border-white/20 transition backdrop-blur-sm"
-                title="Copiar Código PWA"
-              >
-                <Copy className="w-3.5 h-3.5" /> <span className="font-mono opacity-80">{paciente.id.split('-')[0]}...</span>
-              </button>
-              <button 
-                onClick={() => {
-                  const url = `${window.location.origin}/pwa`;
-                  const mensaje = `¡Hola ${paciente.nombre}! 👋\n\nAquí tienes tu acceso exclusivo al portal de LR Fisioderm. Podrás ver tu rutina, seguimiento y tienda de productos.\n\n🔑 *Tu código secreto es:* ${paciente.id}\n\n📱 *Para instalar la App en tu celular:*\n1. Entra a este enlace: ${url}\n2. Toca el botón de 'Compartir' o 'Opciones' de tu navegador.\n3. Elige *'Agregar a inicio' o 'Instalar aplicación'*.\n\n¡Nos vemos pronto!`;
-                  window.open(`https://wa.me/${paciente.telefono?.replace(/\D/g, '') || ''}?text=${encodeURIComponent(mensaje)}`, '_blank');
-                }}
-                className="text-white text-xs font-bold flex items-center gap-1.5 bg-[#25D366]/80 hover:bg-[#25D366] px-3 py-1 rounded-full border border-white/20 transition backdrop-blur-sm shadow-sm"
-                title="Enviar instrucciones por WhatsApp"
-              >
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-                Enviar a paciente
-              </button>
-              <button 
-                onClick={handleDeletePaciente}
-                disabled={saving}
-                className="text-white text-xs font-bold flex items-center gap-1.5 bg-red-500/50 hover:bg-red-600 px-3 py-1 rounded-full border border-white/20 transition backdrop-blur-sm shadow-sm disabled:opacity-50"
-                title="Eliminar Paciente"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                Eliminar
-              </button>
-            </div>
-            <p className="text-white/60 mt-3 text-[10px] uppercase tracking-[0.2em] font-bold italic">{edad ? `${edad} años · ` : ''}{paciente.tratamiento}</p>
-            <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
-              {paciente.alergias?.map((a: string) => (
-                <span key={a} className="px-3 py-1 bg-white/20 text-white rounded-full text-xs font-bold">
-                  ⚠ {a}
-                </span>
-              ))}
-              {(!paciente.alergias || paciente.alergias.length === 0) && (
-                <span className="px-3 py-1 bg-white/20 text-white rounded-full text-xs font-bold">Sin alergias registradas</span>
-              )}
-            </div>
-          </div>
         </div>
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Columna izquierda */}
-        <div className="space-y-6">
-          {/* Evaluación Clínica */}
-          <div className="bg-white rounded-[28px] border border-primary-50 shadow-sm p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-primary-50 pb-3">
-              <h2 className="font-serif font-bold text-primary-900 text-lg">Evaluación Clínica</h2>
-              <button 
-                onClick={handleOpenEvalModal}
-                className="text-primary-400 hover:text-primary-600 bg-primary-50 p-2 rounded-xl transition"
-                title="Editar Evaluación"
-              >
-                <Edit3 className="w-4 h-4" />
-              </button>
-            </div>
-            {/* Hint PWA */}
-            <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-2xl px-3 py-2">
-              <span className="text-blue-400 text-xs mt-0.5">📱</span>
-              <p className="text-[10px] text-blue-600 leading-relaxed">El paciente ve estos datos en <strong>Mi Piel → Tu Evaluación</strong> dentro de su PWA.</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: 'Fototipo', value: paciente.fototipo ?? '—' },
-                { label: 'Hidratación', value: paciente.hidratacion ?? '—' },
-                { label: 'Elasticidad', value: paciente.elasticidad ?? '—' },
-                { label: 'Sensibilidad', value: paciente.sensibilidad ?? '—' },
-              ].map(({ label, value }) => (
-                <div key={label} className="bg-primary-50 rounded-2xl p-3">
-                  <p className="text-[9px] font-bold text-primary-400 uppercase tracking-widest">{label}</p>
-                  <p className="font-bold text-primary-900 mt-1 text-sm">{value}</p>
-                </div>
-              ))}
-            </div>
-            <div className="bg-primary-50 rounded-2xl p-3">
-              <p className="text-[9px] font-bold text-primary-400 uppercase tracking-widest">Objetivo</p>
-              <p className="font-bold text-primary-900 mt-1 text-sm">{paciente.objetivo ?? 'Estético'}</p>
-            </div>
+        <div className="p-8 flex-1 w-full flex flex-col justify-between">
+          <div>
+            <h1 className="text-3xl font-serif font-bold text-gray-900">{paciente.nombre} {paciente.apellidos}</h1>
+            <p className="text-gray-500 mt-1 flex items-center gap-4">
+              <span>{paciente.edad ? `${paciente.edad} años` : 'Edad no registrada'}</span>
+              <span>{paciente.ocupacion ? paciente.ocupacion : 'Ocupación no registrada'}</span>
+            </p>
           </div>
-
-          {/* Protocolo de Tratamiento */}
-          <div className="bg-white rounded-[28px] border border-primary-50 shadow-sm p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-primary-50 pb-3">
-              <h2 className="font-serif font-bold text-primary-900 text-lg">Protocolo Activo</h2>
-              <button 
-                onClick={handleOpenEvalModal}
-                className="text-primary-400 hover:text-primary-600 bg-primary-50 p-2 rounded-xl transition"
-              >
-                <Edit3 className="w-4 h-4" />
-              </button>
-            </div>
-            {/* Hint PWA */}
-            <div className="flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-2xl px-3 py-2">
-              <span className="text-amber-400 text-xs mt-0.5">✅</span>
-              <p className="text-[10px] text-amber-700 leading-relaxed">Cada paso aparece como un <strong>checklist diario</strong> en la PWA del paciente bajo <strong>"Tu Rutina Diaria"</strong>. El paciente puede marcarlos conforme los completa.</p>
-            </div>
-            <p className="text-xs font-bold text-primary-500 uppercase tracking-wider">{paciente.tratamiento}</p>
-            <ol className="space-y-3">
-              {(paciente.protocolo ?? []).map((paso: string, i: number) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
-                    {i + 1}
-                  </span>
-                  <p className="text-sm text-primary-800 leading-relaxed">{paso}</p>
-                </li>
-              ))}
-              {(!paciente.protocolo || paciente.protocolo.length === 0) && (
-                <p className="text-sm italic text-primary-300">No hay protocolo activo.</p>
-              )}
-            </ol>
-          </div>
-        </div>
-
-        {/* Columna derecha */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Historial de Citas */}
-          <div className="bg-white rounded-[28px] border border-primary-50 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-primary-50">
-              <h2 className="font-serif font-bold text-primary-900 text-lg">Historial de Citas</h2>
-            </div>
-            {(paciente.citas ?? []).length > 0 ? (
-              <div className="divide-y divide-primary-50">
-                {(paciente.citas as any[]).map((cita: any, i: number) => {
-                  const cfg = ESTADO_CONFIG[cita.estado] ?? ESTADO_CONFIG.pendiente;
-                  return (
-                    <div key={i} className="px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-primary-50/30 transition">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <p className="font-bold text-primary-900 text-sm">{cita.tipo}</p>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${cfg.bg} ${cfg.text}`}>
-                            {cfg.label}
-                          </span>
-                        </div>
-                        <p className="text-xs text-primary-400 mt-1">{cita.fecha}</p>
-                        {cita.notas && (
-                          <p className="text-xs text-primary-600 mt-2 italic bg-primary-50 rounded-xl px-3 py-2">
-                            📝 {cita.notas}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="py-12 text-center">
-                <p className="text-primary-300 text-sm italic">Sin historial de citas registrado.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Notas Clínicas */}
-          <div className="bg-white rounded-[28px] border border-primary-50 shadow-sm p-6 space-y-4">
-            <h2 className="font-serif font-bold text-primary-900 text-lg border-b border-primary-50 pb-3">Notas Clínicas</h2>
-            <textarea
-              rows={5}
-              value={notas}
-              onChange={(e) => setNotas(e.target.value)}
-              placeholder="Observaciones clínicas, evolución del tratamiento, notas de consulta..."
-              className="w-full p-4 bg-primary-50 border border-primary-100 rounded-2xl text-primary-900 text-sm placeholder-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-400 resize-none transition"
-            />
-            <button
-              onClick={handleSaveNotas}
-              disabled={saving}
-              className="bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-6 rounded-2xl transition shadow-md disabled:opacity-60 flex items-center gap-2 text-sm"
-            >
-              {saving ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Guardando...</>
-              ) : (
-                <><Save className="w-4 h-4" /> Guardar Notas</>
-              )}
+          <div className="flex flex-wrap gap-2 mt-6">
+            <button className="text-xs bg-primary-100 text-primary-700 font-bold px-4 py-2 rounded-full flex items-center gap-2">
+              <Mail className="w-4 h-4" /> {paciente.email}
+            </button>
+            <button className="text-xs bg-green-100 text-green-700 font-bold px-4 py-2 rounded-full flex items-center gap-2">
+              <span className="text-[16px]">📱</span> {paciente.telefono}
+            </button>
+            <button onClick={handleDeletePaciente} className="text-xs bg-red-50 text-red-600 font-bold px-4 py-2 rounded-full ml-auto">
+              Eliminar
             </button>
           </div>
         </div>
       </div>
 
-      {/* Modal de Edición de Evaluación y Protocolo */}
-      {isEvalModalOpen && evalData && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-primary-900/40 backdrop-blur-sm" onClick={() => setIsEvalModalOpen(false)} />
-          <div className="bg-white rounded-[32px] w-full max-w-2xl relative shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
-            <div className="p-8 border-b border-primary-50 flex justify-between items-center bg-primary-50/50 sticky top-0 z-10 backdrop-blur-md">
-              <h2 className="text-2xl font-serif font-bold text-primary-900">Editar Evaluación y Protocolo</h2>
-              <button onClick={() => setIsEvalModalOpen(false)} className="text-primary-300 hover:text-primary-900 p-2 transition">
-                <X className="w-6 h-6" />
-              </button>
+      {/* Tabs */}
+      <div className="flex overflow-x-auto gap-2 p-1 bg-gray-100/50 rounded-2xl">
+        {TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex-1 min-w-[200px] py-3 px-4 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id ? 'bg-white text-primary-700 shadow-sm border border-gray-200/60' : 'text-gray-500 hover:bg-white/50'}`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* VISTA: ANTECEDENTES */}
+      {activeTab === 'antecedentes' && (
+        <div className="bg-white rounded-3xl border border-primary-50 shadow-sm p-6 sm:p-8 space-y-8 animate-in fade-in">
+          <div className="flex justify-between items-center border-b border-gray-100 pb-4">
+            <h2 className="text-xl font-serif font-bold text-gray-900">Ficha Clínica y Antecedentes</h2>
+            <button onClick={handleOpenAntecedentesModal} className="flex items-center gap-2 bg-primary-50 text-primary-600 px-4 py-2 rounded-full text-sm font-bold hover:bg-primary-100 transition">
+              <Edit3 className="w-4 h-4" /> Editar Datos
+            </button>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Médicos y Alergias</h3>
+              <div className="bg-gray-50 p-4 rounded-2xl space-y-2">
+                <p className="text-sm"><strong>Diabetes:</strong> {paciente.antecedentes_medicos?.diabetes ? 'Sí' : 'No'}</p>
+                <p className="text-sm"><strong>Acné/Rosácea:</strong> {paciente.antecedentes_medicos?.acne ? 'Sí' : 'No'}</p>
+                <p className="text-sm"><strong>Cicatrización:</strong> {paciente.antecedentes_medicos?.cicatrizacion ? 'Sí' : 'No'}</p>
+                <p className="text-sm mt-2 text-red-600 font-bold">Alergias: {paciente.alergias?.length > 0 ? paciente.alergias.join(', ') : 'Ninguna'}</p>
+              </div>
             </div>
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Estéticos Previos</h3>
+              <div className="bg-gray-50 p-4 rounded-2xl space-y-2">
+                <p className="text-sm"><strong>Bótox:</strong> {paciente.antecedentes_esteticos?.botox ? 'Sí' : 'No'}</p>
+                <p className="text-sm"><strong>Ácido Hialurónico:</strong> {paciente.antecedentes_esteticos?.hialuronico ? 'Sí' : 'No'}</p>
+                <p className="text-sm"><strong>Cirugías:</strong> {paciente.antecedentes_esteticos?.cirugias ? 'Sí' : 'No'}</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Rutina Actual</h3>
+              <div className="bg-gray-50 p-4 rounded-2xl space-y-2">
+                <p className="text-sm"><strong>Limpiador:</strong> {paciente.rutina_actual?.limpiador || 'No'}</p>
+                <p className="text-sm"><strong>Protector Solar:</strong> {paciente.rutina_actual?.solar || 'No'}</p>
+                <p className="text-sm"><strong>Agua:</strong> {paciente.habitos?.agua || '—'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-            <form onSubmit={handleSaveEval} className="p-8 space-y-8">
-              {/* Sección de Piel */}
+      {/* VISTA: EVALUACIÓN Y RECOMENDACIONES */}
+      {activeTab === 'evaluacion' && (
+        <div className="bg-white rounded-3xl border border-primary-50 shadow-sm p-6 sm:p-8 space-y-8 animate-in fade-in">
+          <div className="flex justify-between items-center border-b border-gray-100 pb-4">
+            <h2 className="text-xl font-serif font-bold text-gray-900">Evaluación Dermatofuncional</h2>
+            <button onClick={handleOpenEvalModal} className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-full text-sm font-bold hover:bg-primary-700 transition shadow-md">
+              <Edit3 className="w-4 h-4" /> Editar Evaluación
+            </button>
+          </div>
+
+          <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3">
+            <span className="text-blue-500 text-lg">📱</span>
+            <p className="text-xs text-blue-700 leading-relaxed font-medium">Las recomendaciones y rutinas que llenes aquí <strong>aparecerán automáticamente en la PWA</strong> del paciente para que las siga en casa.</p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-primary-500 uppercase tracking-widest">Datos Clínicos</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-primary-50 p-3 rounded-xl"><p className="text-[10px] uppercase text-primary-400 font-bold">Fototipo</p><p className="font-bold text-gray-900">{evaluacion.piel_fototipo || '—'}</p></div>
+                <div className="bg-primary-50 p-3 rounded-xl"><p className="text-[10px] uppercase text-primary-400 font-bold">Hidratación</p><p className="font-bold text-gray-900">{evaluacion.piel_hidratacion || '—'}</p></div>
+                <div className="bg-primary-50 p-3 rounded-xl"><p className="text-[10px] uppercase text-primary-400 font-bold">Sensibilidad</p><p className="font-bold text-gray-900">{evaluacion.piel_sensibilidad ? 'Alta' : 'Normal'}</p></div>
+                <div className="bg-primary-50 p-3 rounded-xl"><p className="text-[10px] uppercase text-primary-400 font-bold">Objetivo</p><p className="font-bold text-gray-900">{evaluacion.objetivo_principal || '—'}</p></div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-primary-500 uppercase tracking-widest">Motivo de Consulta</h3>
+              <p className="text-sm text-gray-700 bg-gray-50 p-4 rounded-xl">{evaluacion.motivo_consulta || 'No especificado'}</p>
+            </div>
+          </div>
+
+          <hr className="border-gray-100" />
+
+          <div className="grid sm:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-emerald-600 uppercase tracking-widest flex items-center gap-2">☀️ Rutina Mañana</h3>
+              <p className="text-sm text-gray-700 bg-emerald-50/50 p-4 rounded-xl whitespace-pre-wrap min-h-[100px] border border-emerald-100">
+                {evaluacion.rutina_manana || 'Sin rutina registrada.'}
+              </p>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2">🌙 Rutina Noche</h3>
+              <p className="text-sm text-gray-700 bg-indigo-50/50 p-4 rounded-xl whitespace-pre-wrap min-h-[100px] border border-indigo-100">
+                {evaluacion.rutina_noche || 'Sin rutina registrada.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold text-amber-600 uppercase tracking-widest flex items-center gap-2">⚠️ Cuidados en Casa (24-72 hrs)</h3>
+            <p className="text-sm text-gray-700 bg-amber-50 p-4 rounded-xl whitespace-pre-wrap border border-amber-100">
+              {evaluacion.cuidados_casa || 'Sin cuidados registrados.'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* VISTA: HISTORIAL */}
+      {activeTab === 'historial' && (
+        <div className="bg-white rounded-3xl border border-primary-50 shadow-sm p-6 sm:p-8 space-y-6 animate-in fade-in">
+          <h2 className="text-xl font-serif font-bold text-gray-900 border-b border-gray-100 pb-4">Historial de Citas y Notas</h2>
+          {paciente.citas?.length > 0 ? (
+            <div className="space-y-4">
+              {paciente.citas.map((cita: any, i: number) => (
+                <div key={i} className="flex justify-between items-center bg-gray-50 p-4 rounded-2xl">
+                  <div>
+                    <p className="font-bold text-gray-900">{cita.tipo}</p>
+                    <p className="text-xs text-gray-500">{cita.fecha}</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${ESTADO_CONFIG[cita.estado]?.bg} ${ESTADO_CONFIG[cita.estado]?.text}`}>
+                    {ESTADO_CONFIG[cita.estado]?.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 italic text-center py-8">No hay citas registradas.</p>
+          )}
+
+          <div className="mt-8 space-y-3">
+            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Notas Clínicas Privadas</h3>
+            <textarea
+              rows={4}
+              value={notas}
+              onChange={(e) => setNotas(e.target.value)}
+              placeholder="Notas internas que no ve el paciente..."
+              className="w-full p-4 bg-yellow-50 border border-yellow-200 rounded-2xl text-gray-900 text-sm focus:ring-2 focus:ring-yellow-400 resize-none outline-none"
+            />
+            <button onClick={async () => {
+              setSaving(true);
+              await supabase.from('pacientes').update({ notas }).eq('id', id);
+              setSaving(false);
+            }} className="bg-gray-900 text-white px-6 py-2 rounded-full text-sm font-bold">Guardar Notas</button>
+          </div>
+        </div>
+      )}
+
+
+      {/* MODAL: ANTECEDENTES */}
+      {isAntecedentesModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setIsAntecedentesModalOpen(false)} />
+          <div className="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative shadow-2xl z-10 animate-in fade-in zoom-in-95">
+            <div className="sticky top-0 bg-white/80 backdrop-blur-md p-6 border-b flex justify-between items-center z-20">
+              <h2 className="text-xl font-bold font-serif">Editar Antecedentes (Botones Rápidos)</h2>
+              <button onClick={() => setIsAntecedentesModalOpen(false)}><X className="w-6 h-6 text-gray-400" /></button>
+            </div>
+            <form onSubmit={handleSaveAntecedentes} className="p-6 space-y-8">
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="text-xs font-bold text-gray-500 uppercase">Edad</label><input type="number" value={antData.edad} onChange={e => setAntData({...antData, edad: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 mt-1 outline-none focus:border-primary-400" /></div>
+                <div><label className="text-xs font-bold text-gray-500 uppercase">Ocupación</label><input type="text" value={antData.ocupacion} onChange={e => setAntData({...antData, ocupacion: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 mt-1 outline-none focus:border-primary-400" /></div>
+              </div>
+              
               <div className="space-y-4">
-                <h3 className="text-sm font-bold text-primary-500 uppercase tracking-widest border-b border-primary-50 pb-2">Estado de la Piel</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-primary-400 uppercase ml-1">Fototipo</label>
-                    <select
-                      value={evalData.fototipo}
-                      onChange={(e) => setEvalData({ ...evalData, fototipo: e.target.value })}
-                      className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none"
-                    >
-                      <option value="I">I - Muy clara</option>
-                      <option value="II">II - Clara</option>
-                      <option value="III">III - Intermedia</option>
-                      <option value="IV">IV - Oscura</option>
-                      <option value="V">V - Muy oscura</option>
-                      <option value="VI">VI - Negra</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-primary-400 uppercase ml-1">Hidratación</label>
-                    <select
-                      value={evalData.hidratacion}
-                      onChange={(e) => setEvalData({ ...evalData, hidratacion: e.target.value })}
-                      className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none"
-                    >
-                      <option value="Alta">Alta</option>
-                      <option value="Media">Media</option>
-                      <option value="Baja">Baja</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-primary-400 uppercase ml-1">Elasticidad</label>
-                    <select
-                      value={evalData.elasticidad}
-                      onChange={(e) => setEvalData({ ...evalData, elasticidad: e.target.value })}
-                      className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none"
-                    >
-                      <option value="Alta">Alta</option>
-                      <option value="Media">Media</option>
-                      <option value="Baja">Baja</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-primary-400 uppercase ml-1">Sensibilidad</label>
-                    <select
-                      value={evalData.sensibilidad}
-                      onChange={(e) => setEvalData({ ...evalData, sensibilidad: e.target.value })}
-                      className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none"
-                    >
-                      <option value="Alta">Alta</option>
-                      <option value="Media">Media</option>
-                      <option value="Baja">Baja</option>
-                    </select>
-                  </div>
+                <h3 className="text-sm font-bold text-primary-500 uppercase border-b pb-2">Antecedentes Médicos (Clic para activar)</h3>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Toggle label="Diabetes" checked={antData.antecedentes_medicos?.diabetes} onChange={(val) => setAntData({...antData, antecedentes_medicos: {...antData.antecedentes_medicos, diabetes: val}})} />
+                  <Toggle label="Lupus / Autoinmune" checked={antData.antecedentes_medicos?.lupus} onChange={(val) => setAntData({...antData, antecedentes_medicos: {...antData.antecedentes_medicos, lupus: val}})} />
+                  <Toggle label="Acné / Rosácea" checked={antData.antecedentes_medicos?.acne} onChange={(val) => setAntData({...antData, antecedentes_medicos: {...antData.antecedentes_medicos, acne: val}})} />
+                  <Toggle label="Prob. Cicatrización" checked={antData.antecedentes_medicos?.cicatrizacion} onChange={(val) => setAntData({...antData, antecedentes_medicos: {...antData.antecedentes_medicos, cicatrizacion: val}})} />
                 </div>
               </div>
 
-              {/* Sección de Protocolo */}
               <div className="space-y-4">
-                <h3 className="text-sm font-bold text-primary-500 uppercase tracking-widest border-b border-primary-50 pb-2">Plan de Tratamiento</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-primary-400 uppercase ml-1">Objetivo Principal</label>
-                    <select
-                      value={evalData.objetivo}
-                      onChange={(e) => setEvalData({ ...evalData, objetivo: e.target.value })}
-                      className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none"
-                    >
-                      <option value="Estético">Estético</option>
-                      <option value="Funcional">Funcional</option>
-                      <option value="Mixto">Mixto</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-primary-400 uppercase ml-1">Nombre del Tratamiento</label>
-                    <input
-                      type="text"
-                      value={evalData.tratamiento}
-                      onChange={(e) => setEvalData({ ...evalData, tratamiento: e.target.value })}
-                      className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none"
-                      placeholder="Ej. Control de Acné"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-primary-400 uppercase ml-1">Pasos del Protocolo (uno por línea)</label>
-                  <div className="flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-2">
-                    <span className="text-amber-400 text-xs mt-0.5">✅</span>
-                    <p className="text-[10px] text-amber-700 leading-relaxed">Cada línea = un paso del checklist diario en la app del paciente. Escribe instrucciones claras y cortas. Ej: <em>"Aplicar sérum de Vitamina C por las mañanas"</em></p>
-                  </div>
-                  <textarea
-                    rows={5}
-                    value={evalData.protocolo}
-                    onChange={(e) => setEvalData({ ...evalData, protocolo: e.target.value })}
-                    className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none resize-none"
-                    placeholder={`Lavar rostro con gel suave por la mañana\nAplicar tónico hidratante sin alcohol\nSérum Vitamina C 15% (solo AM)\nHidratante ligero sin fragancia\nProtector solar SPF 50+ (obligatorio)`}
-                  />
+                <h3 className="text-sm font-bold text-primary-500 uppercase border-b pb-2">Estéticos y Quirúrgicos</h3>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Toggle label="Aplicación Bótox" checked={antData.antecedentes_esteticos?.botox} onChange={(val) => setAntData({...antData, antecedentes_esteticos: {...antData.antecedentes_esteticos, botox: val}})} />
+                  <Toggle label="Ácido Hialurónico" checked={antData.antecedentes_esteticos?.hialuronico} onChange={(val) => setAntData({...antData, antecedentes_esteticos: {...antData.antecedentes_esteticos, hialuronico: val}})} />
+                  <Toggle label="Cirugías Faciales" checked={antData.antecedentes_esteticos?.cirugias} onChange={(val) => setAntData({...antData, antecedentes_esteticos: {...antData.antecedentes_esteticos, cirugias: val}})} />
+                  <Toggle label="Hilos Tensores" checked={antData.antecedentes_esteticos?.hilos} onChange={(val) => setAntData({...antData, antecedentes_esteticos: {...antData.antecedentes_esteticos, hilos: val}})} />
                 </div>
               </div>
 
-              <div className="pt-4 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEvalModalOpen(false)}
-                  className="flex-1 py-4 px-6 rounded-2xl border border-primary-100 text-primary-400 font-bold hover:bg-primary-50 transition"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-[2] py-4 px-6 rounded-2xl bg-primary-600 text-white font-bold hover:bg-primary-700 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {saving ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /> Guardando...</>
-                  ) : (
-                    <><Save className="w-5 h-5" /> Actualizar Expediente</>
-                  )}
+              <div className="flex gap-4 pt-4">
+                <button type="button" onClick={() => setIsAntecedentesModalOpen(false)} className="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl">Cancelar</button>
+                <button type="submit" disabled={saving} className="flex-1 py-3 bg-primary-600 text-white font-bold rounded-xl shadow-md flex justify-center items-center gap-2">
+                  {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Guardar'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* MODAL: EVALUACION */}
+      {isEvalModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setIsEvalModalOpen(false)} />
+          <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative shadow-2xl z-10 animate-in fade-in zoom-in-95">
+            <div className="sticky top-0 bg-white/90 backdrop-blur-md p-6 border-b flex justify-between items-center z-20">
+              <h2 className="text-xl font-bold font-serif">Recomendaciones y Rutinas (Visible en PWA)</h2>
+              <button onClick={() => setIsEvalModalOpen(false)}><X className="w-6 h-6 text-gray-400" /></button>
+            </div>
+            <form onSubmit={handleSaveEval} className="p-6 space-y-6">
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase">Motivo de Consulta</label>
+                <input type="text" value={evalData.motivo_consulta} onChange={e => setEvalData({...evalData, motivo_consulta: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 mt-1 outline-none" />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-emerald-600 uppercase flex items-center gap-1"><span className="text-lg">☀️</span> Rutina Mañana</label>
+                  <textarea rows={4} value={evalData.rutina_manana} onChange={e => setEvalData({...evalData, rutina_manana: e.target.value})} className="w-full bg-emerald-50/30 border border-emerald-100 rounded-xl px-4 py-3 mt-1 outline-none" placeholder="Ej. Limpiador suave..." />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-indigo-600 uppercase flex items-center gap-1"><span className="text-lg">🌙</span> Rutina Noche</label>
+                  <textarea rows={4} value={evalData.rutina_noche} onChange={e => setEvalData({...evalData, rutina_noche: e.target.value})} className="w-full bg-indigo-50/30 border border-indigo-100 rounded-xl px-4 py-3 mt-1 outline-none" placeholder="Ej. Desmaquillante..." />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-amber-600 uppercase flex items-center gap-1"><span className="text-lg">⚠️</span> Cuidados en Casa (24-72hrs)</label>
+                <textarea rows={5} value={evalData.cuidados_casa} onChange={e => setEvalData({...evalData, cuidados_casa: e.target.value})} className="w-full bg-amber-50/50 border border-amber-100 rounded-xl px-4 py-3 mt-1 outline-none" />
+                <p className="text-[10px] text-gray-400 mt-1">Este texto viene pre-llenado de tu plantilla oficial.</p>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-blue-600 uppercase">Reacciones Normales Post-Tratamiento</label>
+                <textarea rows={4} value={evalData.reacciones_normales} onChange={e => setEvalData({...evalData, reacciones_normales: e.target.value})} className="w-full bg-blue-50/30 border border-blue-100 rounded-xl px-4 py-3 mt-1 outline-none" />
+              </div>
+
+              <div className="flex gap-4 pt-4 border-t">
+                <button type="button" onClick={() => setIsEvalModalOpen(false)} className="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl">Cancelar</button>
+                <button type="submit" disabled={saving} className="flex-[2] py-3 bg-primary-600 text-white font-bold rounded-xl shadow-md flex justify-center items-center gap-2">
+                  {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Guardar y Publicar en PWA'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -74,7 +74,8 @@ function VistaLogin({ onLogin }: { onLogin: (paciente: any) => void }) {
       if (sbError || !data) {
         setError('Código no válido. Verifica con tu especialista.');
       } else {
-        onLogin(data);
+        const { data: evData } = await supabase.from('evaluaciones_clinicas').select('*').eq('paciente_id', trimmed).order('created_at', { ascending: false }).limit(1).single();
+        onLogin({ ...data, evaluacion: evData || {} });
       }
     } catch (err) {
       setError('Error de conexión. Intenta de nuevo.');
@@ -345,10 +346,10 @@ function VistaPerfil({ paciente, onLogout }: { paciente: any, onLogout: () => vo
         <p className="text-[10px] text-primary-400 italic leading-relaxed">Estos datos fueron registrados por tu especialista en tu última valoración clínica. Si algo no coincide, comentáselo en tu próxima cita. 👩‍⚕️</p>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { label: 'Fototipo', value: paciente.fototipo || '—' },
-            { label: 'Hidratación', value: paciente.hidratacion || '—' },
-            { label: 'Sensibilidad', value: paciente.sensibilidad || '—' },
-            { label: 'Objetivo', value: paciente.objetivo || '—' },
+            { label: 'Fototipo', value: paciente.evaluacion?.piel_fototipo || paciente.fototipo || '—' },
+            { label: 'Hidratación', value: paciente.evaluacion?.piel_hidratacion || paciente.hidratacion || '—' },
+            { label: 'Sensibilidad', value: paciente.evaluacion?.piel_sensibilidad ? 'Alta' : (paciente.sensibilidad || '—') },
+            { label: 'Objetivo', value: paciente.evaluacion?.objetivo_principal || paciente.objetivo || '—' },
           ].map((item) => (
             <div key={item.label} className="bg-primary-50 rounded-2xl p-3">
               <p className="text-[9px] font-bold text-primary-400 uppercase tracking-widest">{item.label}</p>
@@ -357,6 +358,41 @@ function VistaPerfil({ paciente, onLogout }: { paciente: any, onLogout: () => vo
           ))}
         </div>
       </div>
+
+      {/* RECOMENDACIONES Y CUIDADOS POST-TX */}
+      {(paciente.evaluacion?.cuidados_casa || paciente.evaluacion?.reacciones_normales) && (
+        <div className="bg-amber-50 rounded-[28px] p-6 border border-amber-100 shadow-sm space-y-4">
+          <h3 className="font-bold text-amber-700 text-sm uppercase tracking-wider border-b border-amber-100/50 pb-2 flex items-center gap-2">⚠️ Cuidados Post-Tratamiento</h3>
+          
+          {paciente.evaluacion.cuidados_casa && (
+            <div className="space-y-1">
+              <p className="text-[10px] text-amber-600/80 uppercase font-bold tracking-widest">Cuidados en Casa (24-72 hrs)</p>
+              <p className="text-sm text-amber-900 whitespace-pre-wrap">{paciente.evaluacion.cuidados_casa}</p>
+            </div>
+          )}
+
+          {paciente.evaluacion.reacciones_normales && (
+            <div className="space-y-1 pt-3 border-t border-amber-100/50">
+              <p className="text-[10px] text-amber-600/80 uppercase font-bold tracking-widest">Reacciones Normales</p>
+              <p className="text-sm text-amber-900 whitespace-pre-wrap">{paciente.evaluacion.reacciones_normales}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* RUTINA MAÑANA / NOCHE */}
+      {(paciente.evaluacion?.rutina_manana || paciente.evaluacion?.rutina_noche) && (
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-emerald-50 rounded-[24px] p-5 border border-emerald-100 shadow-sm space-y-2">
+            <h3 className="font-bold text-emerald-700 text-xs uppercase tracking-wider flex items-center gap-1"><span className="text-sm">☀️</span> Día</h3>
+            <p className="text-xs text-emerald-900 whitespace-pre-wrap">{paciente.evaluacion.rutina_manana || 'Sin registro.'}</p>
+          </div>
+          <div className="bg-indigo-50 rounded-[24px] p-5 border border-indigo-100 shadow-sm space-y-2">
+            <h3 className="font-bold text-indigo-700 text-xs uppercase tracking-wider flex items-center gap-1"><span className="text-sm">🌙</span> Noche</h3>
+            <p className="text-xs text-indigo-900 whitespace-pre-wrap">{paciente.evaluacion.rutina_noche || 'Sin registro.'}</p>
+          </div>
+        </div>
+      )}
 
       {paciente.protocolo && paciente.protocolo.length > 0 && (
         <div className="bg-primary-900 rounded-[32px] p-8 text-white space-y-4 shadow-lg relative overflow-hidden">
@@ -541,8 +577,10 @@ export default function PWAPage() {
     try {
       const { data, error } = await supabase.from('pacientes').select('*').eq('id', id).single();
       if (!error && data) {
-        setPaciente(data);
-        localStorage.setItem('pwa_paciente', JSON.stringify(data));
+        const { data: evData } = await supabase.from('evaluaciones_clinicas').select('*').eq('paciente_id', id).order('created_at', { ascending: false }).limit(1).single();
+        const fullData = { ...data, evaluacion: evData || {} };
+        setPaciente(fullData);
+        localStorage.setItem('pwa_paciente', JSON.stringify(fullData));
       }
     } catch (err) {
       console.error('Error al sincronizar datos del paciente:', err);

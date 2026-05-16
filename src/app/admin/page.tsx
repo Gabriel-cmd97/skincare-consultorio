@@ -352,7 +352,7 @@ export default function AdminSoportePage() {
 
           {/* Columna Derecha: Secciones de la Landing */}
           <div className="space-y-8">
-            <section className="bg-slate-800/50 border border-slate-700/50 rounded-3xl p-6 h-full">
+            <section className="bg-slate-800/50 border border-slate-700/50 rounded-3xl p-6">
               <div className="flex items-center gap-2 text-amber-400 mb-6">
                 <Layout className="w-5 h-5" />
                 <h2 className="font-bold uppercase tracking-wider text-sm">Visibilidad de Secciones (PWA/Landing)</h2>

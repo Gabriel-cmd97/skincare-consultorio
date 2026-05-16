@@ -39,6 +39,8 @@ export default function ExpedientePage() {
   const [notas, setNotas] = useState('');
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('antecedentes');
+  const [protocolo, setProtocolo] = useState<string[]>([]);
+  const [savingProtocolo, setSavingProtocolo] = useState(false);
 
   // Modal Antecedentes
   const [isAntecedentesModalOpen, setIsAntecedentesModalOpen] = useState(false);
@@ -71,6 +73,7 @@ export default function ExpedientePage() {
         setPaciente({ ...FALLBACK_PACIENTE, ...pData });
         setEvaluacion(evData || {});
         setNotas(pData.notas || '');
+        setProtocolo(pData.protocolo || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -298,6 +301,32 @@ export default function ExpedientePage() {
                 <p className="text-sm"><strong>Agua:</strong> {paciente.habitos?.agua || '—'}</p>
               </div>
             </div>
+          </div>
+
+          {/* Protocolo de Casa */}
+          <div className="border-t border-gray-100 pt-6">
+            <h3 className="text-sm font-bold text-primary-500 uppercase tracking-widest mb-1">Protocolo de Casa</h3>
+            <p className="text-xs text-gray-400 mb-3">Visible como checklist diario en la app del paciente. Cada línea = un paso.</p>
+            <textarea
+              rows={5}
+              value={protocolo.join('\n')}
+              onChange={(e) => setProtocolo(e.target.value.split('\n'))}
+              className="w-full p-4 bg-primary-50 border border-primary-100 rounded-2xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-400 resize-none outline-none"
+              placeholder={`Ej:\n1. Limpiador facial suave (mañana y noche).\n2. Protector solar FPS 50+.\n3. Crema hidratante antes de dormir.`}
+            />
+            <button
+              onClick={async () => {
+                setSavingProtocolo(true);
+                const clean = protocolo.map(s => s.trim()).filter(Boolean);
+                await supabase.from('pacientes').update({ protocolo: clean }).eq('id', id);
+                setProtocolo(clean);
+                setSavingProtocolo(false);
+              }}
+              disabled={savingProtocolo}
+              className="mt-3 bg-primary-600 text-white px-6 py-2 rounded-full text-sm font-bold hover:bg-primary-700 transition disabled:opacity-50"
+            >
+              {savingProtocolo ? 'Guardando...' : 'Guardar Protocolo'}
+            </button>
           </div>
         </div>
       )}

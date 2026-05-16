@@ -62,7 +62,8 @@ export default function PacientesPage() {
         fecha_nacimiento: '',
         alergias: [],
         tratamiento_principal: 'General',
-      });
+        protocolo: [],
+      } as any);
     }
     setIsModalOpen(true);
   };
@@ -73,21 +74,24 @@ export default function PacientesPage() {
 
     setGuardando(true);
     try {
+      const protocoloRaw = (editando as any).protocolo;
+      const protocoloArray = Array.isArray(protocoloRaw)
+        ? protocoloRaw
+        : typeof protocoloRaw === 'string'
+          ? (protocoloRaw as string).split('\n').map((s: string) => s.trim()).filter(Boolean)
+          : [];
+
       const payload = {
         ...editando,
-        // Generamos un email ficticio único para cumplir con el esquema si fuera necesario, 
-        // o simplemente lo omitimos si el esquema lo permite (estamos omitiendo para ver si es opcional)
-        alergias: Array.isArray(editando.alergias) 
-          ? editando.alergias 
-          : (editando.alergias as any).split(',').map((s: string) => s.trim()).filter(Boolean)
+        alergias: Array.isArray(editando.alergias)
+          ? editando.alergias
+          : (editando.alergias as any).split(',').map((s: string) => s.trim()).filter(Boolean),
+        protocolo: protocoloArray,
       };
 
-      const { error } = await supabase
-        .from('pacientes')
-        .upsert(payload);
-
+      const { error } = await supabase.from('pacientes').upsert(payload);
       if (error) throw error;
-      
+
       await fetchPacientes();
       setIsModalOpen(false);
       setEditando(null);
@@ -447,6 +451,22 @@ export default function PacientesPage() {
                     placeholder="Ej: Polen, Aspirina"
                   />
                 </div>
+              </div>
+
+              {/* Campo Protocolo */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-primary-500 uppercase tracking-wider ml-1">
+                  Protocolo de Casa
+                  <span className="text-primary-300 font-normal normal-case ml-2">(visible como checklist en la app del paciente)</span>
+                </label>
+                <textarea
+                  rows={4}
+                  value={Array.isArray((editando as any).protocolo) ? (editando as any).protocolo.join('\n') : (editando as any).protocolo || ''}
+                  onChange={(e) => setEditando({ ...editando, protocolo: e.target.value } as any)}
+                  className="w-full px-4 py-3 bg-primary-50 rounded-xl border border-primary-100 focus:ring-2 focus:ring-primary-400 outline-none transition resize-none"
+                  placeholder={`Ej:\n1. Limpiador facial suave por la mañana.\n2. Protector solar FPS 50+.\n3. Crema hidratante antes de dormir.`}
+                />
+                <p className="text-[11px] text-primary-400 ml-1">Cada línea = un paso del checklist diario que verá el paciente en su app.</p>
               </div>
 
               <div className="pt-4 flex gap-3">

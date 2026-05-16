@@ -488,6 +488,102 @@ function VistaPerfil({ paciente, onLogout }: { paciente: any, onLogout: () => vo
   );
 }
 
+function VistaCitas({ telefono }: { telefono: string }) {
+  const [citas, setCitas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchCitas() {
+      if (!telefono) { setLoading(false); return; }
+      try {
+        // Buscar citas por teléfono del paciente (limpiamos el número)
+        const tel = telefono.replace(/\D/g, '');
+        const { data } = await supabase
+          .from('citas')
+          .select('*')
+          .ilike('paciente_telefono', `%${tel.slice(-8)}%`) // últimos 8 dígitos para mayor compatibilidad
+          .order('fecha_hora', { ascending: false })
+          .limit(20);
+        setCitas(data || []);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCitas();
+  }, [telefono]);
+
+  const estadoConfig: Record<string, { label: string; bg: string; text: string; emoji: string }> = {
+    confirmada: { label: 'Confirmada', bg: 'bg-green-100', text: 'text-green-700', emoji: '✅' },
+    pendiente: { label: 'Pendiente', bg: 'bg-amber-100', text: 'text-amber-700', emoji: '⏳' },
+    cancelada: { label: 'Cancelada', bg: 'bg-red-100', text: 'text-red-500', emoji: '❌' },
+    completada: { label: 'Completada', bg: 'bg-primary-100', text: 'text-primary-700', emoji: '🌟' },
+  };
+
+  return (
+    <main className="px-5 pt-6 pb-4 space-y-4">
+      <div className="flex items-start gap-2 bg-primary-50 border border-primary-100 rounded-2xl px-4 py-3">
+        <span className="text-base">📅</span>
+        <p className="text-[11px] text-primary-500 leading-relaxed">
+          Aquí puedes ver el <strong>historial de tus citas</strong> agendadas con LR Fisioderm.
+        </p>
+      </div>
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <Loader2 className="w-10 h-10 text-primary-600 animate-spin" />
+          <p className="text-primary-400 text-sm italic">Buscando tus citas...</p>
+        </div>
+      ) : citas.length === 0 ? (
+        <div className="bg-white rounded-[32px] p-10 border border-primary-50 text-center space-y-3">
+          <p className="text-5xl">🗓️</p>
+          <p className="font-bold text-primary-900">Sin citas registradas</p>
+          <p className="text-sm text-primary-400 leading-relaxed">
+            Aún no tienes citas agendadas. ¡Puedes agendar una desde el sitio web de la clínica!
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {citas.map((cita) => {
+            const fecha = new Date(cita.fecha_hora);
+            const cfg = estadoConfig[cita.estado] || estadoConfig.pendiente;
+            const esFutura = fecha > new Date();
+            return (
+              <div key={cita.id} className={`bg-white rounded-[28px] border shadow-sm overflow-hidden ${esFutura ? 'border-primary-200' : 'border-primary-50'}`}>
+                <div className={`px-5 py-3 flex items-center justify-between ${esFutura ? 'bg-primary-50' : 'bg-stone-50'}`}>
+                  <div>
+                    <p className="text-xs font-bold text-primary-400 uppercase tracking-widest">
+                      {fecha.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
+                    <p className="font-serif font-bold text-primary-900 text-lg">
+                      {fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1.5 ${cfg.bg} ${cfg.text}`}>
+                    {cfg.emoji} {cfg.label}
+                  </span>
+                </div>
+                <div className="px-5 py-4 space-y-2">
+                  <p className="font-bold text-primary-900">{cita.tipo_tratamiento}</p>
+                  {cita.es_primera_vez !== undefined && (
+                    <p className="text-xs text-primary-400">
+                      {cita.es_primera_vez ? '🟢 Primera consulta' : '🔁 Consulta de seguimiento'}
+                    </p>
+                  )}
+                  {!esFutura && cita.estado !== 'cancelada' && (
+                    <p className="text-xs text-primary-300 italic">Cita pasada</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </main>
+  );
+}
+
 function VistaTienda({ productos, loading, whatsappNumber }: { productos: any[], loading: boolean, whatsappNumber: string }) {
   return (
     <main className="px-5 pt-6 pb-4 space-y-6">
@@ -697,12 +793,16 @@ export default function PWAPage() {
       </header>
 
       {vista === 'inicio' && <VistaInicio tips={content} loading={loading} filter={filter} setFilter={setFilter} filtroEtiqueta={filtroEtiqueta} setFiltroEtiqueta={setFiltroEtiqueta} />}
+      {vista === 'citas' && <VistaCitas telefono={paciente.telefono || ''} />}
       {vista === 'tienda' && <VistaTienda productos={productos} loading={loadingProds} whatsappNumber={whatsapp} />}
       {vista === 'perfil' && <VistaPerfil paciente={paciente} onLogout={handleLogout} />}
 
       <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-sm bg-primary-900/95 backdrop-blur-lg rounded-full px-6 py-3 flex justify-around items-center shadow-2xl z-50 border border-white/10">
         {[
           ...(moduleTips ? [{ id: 'inicio', label: 'Inicio', icon: <Key className="w-5 h-5" /> }] : []),
+          { id: 'citas', label: 'Mis Citas', icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          )},
           ...(moduleStore ? [{ id: 'tienda', label: 'Tienda', icon: <Tag className="w-5 h-5" /> }] : []),
           { id: 'perfil', label: 'Mi Piel', icon: <User className="w-5 h-5" /> },
         ].map((item) => (

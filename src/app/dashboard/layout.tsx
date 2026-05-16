@@ -77,14 +77,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     const channel = supabase
       .channel('layout_notificaciones')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'notificaciones' }, payload => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notificaciones' }, () => {
          fetchUnreadCount();
       })
       .subscribe();
 
+    // Polling de respaldo cada 15 seg (por si Realtime no está habilitado en Supabase)
+    const pollingInterval = setInterval(fetchUnreadCount, 15000);
+
     return () => {
       subscription.unsubscribe();
       supabase.removeChannel(channel);
+      clearInterval(pollingInterval);
     };
   }, [router]);
 

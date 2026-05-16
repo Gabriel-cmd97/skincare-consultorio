@@ -1,7 +1,10 @@
 'use server';
 
 export async function verifyAdminPassword(password: string) {
-  // En producción, es ideal usar una variable de entorno como process.env.ADMIN_PASSWORD
+  // Retardo intencional de 1 segundo para mitigar ataques de fuerza bruta
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  // En producción, es ideal usar una variable de entorno
   const correctPassword = process.env.ADMIN_PASSWORD || 'admin1234';
   
   if (password === correctPassword) {

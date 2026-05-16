@@ -129,7 +129,7 @@ export default function CitasForm() {
     }
 
     if (!isValidBusinessHour(hora)) {
-      setMessage({ type: "error", text: "El horario de atención es de 9:00 AM a 6:00 PM." });
+      setMessage({ type: "error", text: "El horario de atención es de 8:00 AM a 6:20 PM." });
       setLoading(false);
       return;
     }
@@ -322,12 +322,11 @@ export default function CitasForm() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all bg-white"
             >
               <option value="">Selecciona un horario</option>
-              <option value="09:00" disabled={horasOcupadas.includes("09:00")}>09:00 AM {horasOcupadas.includes("09:00") && "(Ocupado)"}</option>
-              <option value="11:20" disabled={horasOcupadas.includes("11:20")}>11:20 AM {horasOcupadas.includes("11:20") && "(Ocupado)"}</option>
-              <option value="13:40" disabled={horasOcupadas.includes("13:40")}>01:40 PM {horasOcupadas.includes("13:40") && "(Ocupado)"}</option>
+              <option value="08:00" disabled={horasOcupadas.includes("08:00")}>08:00 AM {horasOcupadas.includes("08:00") && "(Ocupado)"}</option>
+              <option value="12:00" disabled={horasOcupadas.includes("12:00")}>12:00 PM {horasOcupadas.includes("12:00") && "(Ocupado)"}</option>
               <option value="16:00" disabled={horasOcupadas.includes("16:00")}>04:00 PM {horasOcupadas.includes("16:00") && "(Ocupado)"}</option>
             </select>
-            <p className="text-xs text-gray-500 mt-1">L a S, 9am - 6pm</p>
+            <p className="text-xs text-gray-500 mt-1">L a S, 8:00 AM - 6:20 PM</p>
           </div>
         </div>
 

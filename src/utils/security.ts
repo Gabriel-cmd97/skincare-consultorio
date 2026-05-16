@@ -67,8 +67,8 @@ export function isValidFutureDate(dateStr: string): boolean {
 export function isValidBusinessHour(timeStr: string): boolean {
   const [hours, minutes] = timeStr.split(':').map(Number);
   const totalMinutes = hours * 60 + minutes;
-  // 9:00 AM = 540 min, 6:00 PM = 1080 min
-  return totalMinutes >= 540 && totalMinutes <= 1080;
+  // 8:00 AM = 480 min, 6:20 PM = 1100 min
+  return totalMinutes >= 480 && totalMinutes <= 1100;
 }
 
 /**

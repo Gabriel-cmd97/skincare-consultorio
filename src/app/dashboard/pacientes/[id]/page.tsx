@@ -225,9 +225,6 @@ export default function ExpedientePage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 mt-6">
-            <button className="text-xs bg-primary-100 text-primary-700 font-bold px-4 py-2 rounded-full flex items-center gap-2">
-              <Mail className="w-4 h-4" /> {paciente.email}
-            </button>
             <button className="text-xs bg-green-100 text-green-700 font-bold px-4 py-2 rounded-full flex items-center gap-2">
               <span className="text-[16px]">📱</span> {paciente.telefono}
             </button>

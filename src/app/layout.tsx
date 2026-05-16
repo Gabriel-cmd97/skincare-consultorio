@@ -8,22 +8,69 @@ export const metadata: Metadata = {
   description: "Especialidad en Fisioterapia Dermatofuncional con enfoque clínico en alteraciones de la piel y tejidos.",
 };
 
+// Helper: Convierte HEX a "R G B"
+function hexToRgb(hex: string) {
+  const cleanHex = hex.replace('#', '');
+  const r = parseInt(cleanHex.substring(0, 2), 16);
+  const g = parseInt(cleanHex.substring(2, 4), 16);
+  const b = parseInt(cleanHex.substring(4, 6), 16);
+  return `${r} ${g} ${b}`;
+}
+
+// Helper: Mezcla dos colores RGB (r g b) con un peso (0 a 1)
+function mixRgb(rgb1: string, rgb2: string, weight: number) {
+  const [r1, g1, b1] = rgb1.split(' ').map(Number);
+  const [r2, g2, b2] = rgb2.split(' ').map(Number);
+  const w = weight;
+  const r = Math.round(r1 * w + r2 * (1 - w));
+  const g = Math.round(g1 * w + g2 * (1 - w));
+  const b = Math.round(b1 * w + b2 * (1 - w));
+  return `${r} ${g} ${b}`;
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   let showStore = true;
+  let primaryColor = '#b87c6f'; // default original Rosa Palo
+
   try {
-    const { data } = await supabase.from('configuracion').select('valor').eq('clave', 'module_store').single();
-    if (data && data.valor === 'false') {
-      showStore = false;
+    const { data } = await supabase.from('configuracion').select('clave, valor').in('clave', ['module_store', 'primary_color']);
+    if (data) {
+      data.forEach(item => {
+        if (item.clave === 'module_store' && item.valor === 'false') showStore = false;
+        if (item.clave === 'primary_color' && item.valor) primaryColor = item.valor;
+      });
     }
   } catch (e) {
-    // Fallback to true if error
+    // Fallback if error
   }
+
+  // Generar paleta de colores dinámicamente
+  const baseRgb = hexToRgb(primaryColor);
+  const whiteRgb = '255 255 255';
+  const blackRgb = '0 0 0';
+
   return (
     <html lang="es">
+      <head>
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --primary-50: ${mixRgb(baseRgb, whiteRgb, 0.05)};
+            --primary-100: ${mixRgb(baseRgb, whiteRgb, 0.15)};
+            --primary-200: ${mixRgb(baseRgb, whiteRgb, 0.30)};
+            --primary-300: ${mixRgb(baseRgb, whiteRgb, 0.50)};
+            --primary-400: ${mixRgb(baseRgb, whiteRgb, 0.70)};
+            --primary-500: ${baseRgb};
+            --primary-600: ${mixRgb(baseRgb, blackRgb, 0.85)};
+            --primary-700: ${mixRgb(baseRgb, blackRgb, 0.70)};
+            --primary-800: ${mixRgb(baseRgb, blackRgb, 0.55)};
+            --primary-900: ${mixRgb(baseRgb, blackRgb, 0.40)};
+          }
+        ` }} />
+      </head>
       <body className="antialiased min-h-screen flex flex-col font-sans">
         <PublicHeader>
           <header className="bg-white/80 backdrop-blur-md border-b border-primary-100 text-primary-900 p-4 sticky top-0 z-50 transition-all duration-300">

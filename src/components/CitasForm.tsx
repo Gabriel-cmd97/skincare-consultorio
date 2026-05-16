@@ -183,7 +183,7 @@ export default function CitasForm() {
         formLoadTime.current = Date.now(); // Reiniciar timer
       }
     } catch (error: any) {
-      console.error(error);
+      console.error("Detalle del error Supabase:", JSON.stringify(error, null, 2), error);
       setMessage({
         type: "error",
         text: "Hubo un error al agendar la cita. Inténtalo de nuevo.",

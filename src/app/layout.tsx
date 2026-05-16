@@ -1,17 +1,27 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import PublicHeader from "@/components/PublicHeader";
+import { supabase } from "@/utils/supabase";
 
 export const metadata: Metadata = {
   title: "LR Fisioderm | Fisioterapia Dermatofuncional",
   description: "Especialidad en Fisioterapia Dermatofuncional con enfoque clínico en alteraciones de la piel y tejidos.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let showStore = true;
+  try {
+    const { data } = await supabase.from('configuracion').select('valor').eq('clave', 'module_store').single();
+    if (data && data.valor === 'false') {
+      showStore = false;
+    }
+  } catch (e) {
+    // Fallback to true if error
+  }
   return (
     <html lang="es">
       <body className="antialiased min-h-screen flex flex-col font-sans">
@@ -27,7 +37,9 @@ export default function RootLayout({
               </h1>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="/#catalogo" className="text-sm uppercase tracking-widest font-medium hover:text-primary-500 transition-colors">Catálogo</a>
+              {showStore && (
+                <a href="/#catalogo" className="text-sm uppercase tracking-widest font-medium hover:text-primary-500 transition-colors">Catálogo</a>
+              )}
               <a href="/#citas" className="text-sm uppercase tracking-widest font-medium hover:text-primary-500 transition-colors">Agendar Cita</a>
               <a href="/pwa" className="text-sm uppercase tracking-widest font-bold text-primary-600 hover:text-primary-800 transition-colors border border-primary-200 px-3 py-1.5 rounded-full bg-primary-50">
                 Acceso Pacientes
@@ -76,7 +88,9 @@ export default function RootLayout({
             <div>
               <h3 className="text-sm uppercase tracking-widest font-bold text-primary-400 mb-6">Navegación</h3>
               <ul className="space-y-3">
-                <li><a href="/#catalogo" className="hover:text-white transition-colors">Productos de Skincare</a></li>
+                {showStore && (
+                  <li><a href="/#catalogo" className="hover:text-white transition-colors">Productos de Skincare</a></li>
+                )}
                 <li><a href="/#citas" className="hover:text-white transition-colors">Agendar Valoración</a></li>
                 <li><a href="/dashboard" className="hover:text-white transition-colors">Portal Especialista</a></li>
               </ul>

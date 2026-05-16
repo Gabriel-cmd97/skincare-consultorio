@@ -28,6 +28,7 @@ export default async function Home() {
   const showTestimonios = config.landing_testimonios === 'true';
   const showEspecialista = config.landing_especialista !== 'false';
   const showUbicacion = config.landing_ubicacion !== 'false';
+  const showStore = config.module_store !== 'false';
 
   // Contenido dinámico de cada sección
   const defaultServicios = [
@@ -93,9 +94,11 @@ export default async function Home() {
                 Agendar Valoración
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
               </a>
-              <a href="#catalogo" className="w-full sm:w-auto bg-white hover:bg-primary-50 text-primary-700 border border-primary-200 font-semibold py-4 px-10 rounded-full transition-all shadow-sm hover:shadow-md flex items-center justify-center">
-                Ver Productos
-              </a>
+              {showStore && (
+                <a href="#catalogo" className="w-full sm:w-auto bg-white hover:bg-primary-50 text-primary-700 border border-primary-200 font-semibold py-4 px-10 rounded-full transition-all shadow-sm hover:shadow-md flex items-center justify-center">
+                  Ver Productos
+                </a>
+              )}
             </div>
           </div>
           
@@ -174,28 +177,30 @@ export default async function Home() {
       )}
 
       {/* Catálogo Section */}
-      <section id="catalogo" className="py-32 bg-stone-50 px-4">
-        <div className="container mx-auto">
-          <div className="max-w-3xl mx-auto text-center mb-20 space-y-4">
-            <h2 className="text-sm uppercase tracking-[0.3em] font-bold text-primary-500">Línea de Cuidado</h2>
-            <h3 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-primary-900">Catálogo de Grado Médico</h3>
-            <p className="text-lg text-primary-800/60 font-light">Seleccionamos cuidadosamente los mejores productos para potenciar tu tratamiento en casa.</p>
+      {showStore && (
+        <section id="catalogo" className="py-32 bg-stone-50 px-4">
+          <div className="container mx-auto">
+            <div className="max-w-3xl mx-auto text-center mb-20 space-y-4">
+              <h2 className="text-sm uppercase tracking-[0.3em] font-bold text-primary-500">Línea de Cuidado</h2>
+              <h3 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-primary-900">Catálogo de Grado Médico</h3>
+              <p className="text-lg text-primary-800/60 font-light">Seleccionamos cuidadosamente los mejores productos para potenciar tu tratamiento en casa.</p>
+            </div>
+            
+            {productos && productos.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+                {productos.map((producto) => (
+                  <ProductoCard key={producto.id} producto={producto} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-white rounded-3xl border border-primary-100 shadow-sm">
+                <svg className="w-16 h-16 text-primary-100 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                <p className="text-primary-400 text-xl font-light">Próximamente disponible</p>
+              </div>
+            )}
           </div>
-          
-          {productos && productos.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-              {productos.map((producto) => (
-                <ProductoCard key={producto.id} producto={producto} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-20 bg-white rounded-3xl border border-primary-100 shadow-sm">
-              <svg className="w-16 h-16 text-primary-100 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-              <p className="text-primary-400 text-xl font-light">Próximamente disponible</p>
-            </div>
-          )}
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 3. Testimonios Section */}
       {showTestimonios && (

@@ -519,6 +519,10 @@ export default function PWAPage() {
   const [vista, setVista] = useState<Vista>('inicio');
   const [checking, setChecking] = useState(true);
 
+  // --- SaaS Flags ---
+  const [moduleStore, setModuleStore] = useState(true);
+  const [moduleTips, setModuleTips] = useState(true);
+
   useEffect(() => {
     const saved = localStorage.getItem('pwa_paciente');
     if (saved) {
@@ -547,8 +551,18 @@ export default function PWAPage() {
 
   async function fetchConfig() {
     try {
-      const { data } = await supabase.from('configuracion').select('valor').eq('clave', 'whatsapp').single();
-      if (data) setWhatsapp(data.valor);
+      const { data } = await supabase.from('configuracion').select('clave, valor').in('clave', ['whatsapp', 'module_store', 'module_tips']);
+      if (data) {
+        data.forEach(item => {
+          if (item.clave === 'whatsapp') setWhatsapp(item.valor);
+          if (item.clave === 'module_store') setModuleStore(item.valor === 'true');
+          if (item.clave === 'module_tips') {
+            const hasTips = item.valor === 'true';
+            setModuleTips(hasTips);
+            if (!hasTips) setVista('perfil'); // Si no hay tips, iniciar en perfil
+          }
+        });
+      }
     } catch {
       // Ignorar error si no existe la configuración
     }
@@ -616,8 +630,8 @@ export default function PWAPage() {
 
       <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-sm bg-primary-900/95 backdrop-blur-lg rounded-full px-6 py-3 flex justify-around items-center shadow-2xl z-50 border border-white/10">
         {[
-          { id: 'inicio', label: 'Inicio', icon: <Key className="w-5 h-5" /> },
-          { id: 'tienda', label: 'Tienda', icon: <Tag className="w-5 h-5" /> },
+          ...(moduleTips ? [{ id: 'inicio', label: 'Inicio', icon: <Key className="w-5 h-5" /> }] : []),
+          ...(moduleStore ? [{ id: 'tienda', label: 'Tienda', icon: <Tag className="w-5 h-5" /> }] : []),
           { id: 'perfil', label: 'Mi Piel', icon: <User className="w-5 h-5" /> },
         ].map((item) => (
           <button

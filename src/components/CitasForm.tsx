@@ -87,6 +87,13 @@ export default function CitasForm() {
       return;
     }
 
+    const selectedDate = new Date(`${fecha}T12:00:00`);
+    if (selectedDate.getDay() === 0) {
+      setMessage({ type: "error", text: "El consultorio no abre los domingos. Por favor elige de Lunes a Sábado." });
+      setLoading(false);
+      return;
+    }
+
     if (!isValidBusinessHour(hora)) {
       setMessage({ type: "error", text: "El horario de atención es de 9:00 AM a 6:00 PM." });
       setLoading(false);
@@ -273,18 +280,20 @@ export default function CitasForm() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Hora</label>
-            <input
-              type="time"
+            <label className="block text-sm font-medium text-gray-700 mb-1">Hora (Sesiones de 2:20 hrs)</label>
+            <select
               required
-              min="09:00"
-              max="18:00"
-              step="1800"
               value={hora}
               onChange={(e) => setHora(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
-            />
-            <p className="text-xs text-gray-500 mt-1">L a V, 9am - 6pm</p>
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all bg-white"
+            >
+              <option value="">Selecciona un horario</option>
+              <option value="09:00">09:00 AM</option>
+              <option value="11:20">11:20 AM</option>
+              <option value="13:40">01:40 PM</option>
+              <option value="16:00">04:00 PM</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">L a S, 9am - 6pm</p>
           </div>
         </div>
 

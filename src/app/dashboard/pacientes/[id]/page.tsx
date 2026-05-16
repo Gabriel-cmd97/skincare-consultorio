@@ -121,6 +121,8 @@ export default function ExpedientePage() {
     // Si no hay evaluación previa, pre-llenar plantillas
     const templateReacciones = "Enrojecimiento leve.\nSensibilidad.\nResequedad o ligera descamación.\nAparición de brotes leves (proceso de renovación cutánea).";
     const templateCuidados = "Evitar exposición directa al sol.\nNo tocar, exprimir o manipular la piel.\nEvitar maquillaje (mínimo 24 horas).\nNo usar productos irritantes (ácidos, exfoliantes, retinol).\nEvitar calor excesivo (vapor, ejercicio intenso).";
+    const templateManana = "1. Limpiador facial suave.\n2. Contorno de ojos.\n3. Suero antioxidante (Vitamina C).\n4. Crema hidratante ligera.\n5. Protector solar FPS 50+ (Reaplicar cada 3 hrs).";
+    const templateNoche = "1. Desmaquillante o agua micelar.\n2. Limpiador facial.\n3. Contorno de ojos.\n4. Tratamiento específico (Despigmentante/Anti-acné/Retinol).\n5. Crema hidratante reparadora.";
 
     setEvalData({
       motivo_consulta: evaluacion.motivo_consulta || '',
@@ -132,8 +134,8 @@ export default function ExpedientePage() {
       objetivo: evaluacion.objetivo_principal || 'Estético',
       cuidados_casa: evaluacion.cuidados_casa || templateCuidados,
       reacciones_normales: evaluacion.reacciones_normales || templateReacciones,
-      rutina_manana: evaluacion.rutina_manana || '',
-      rutina_noche: evaluacion.rutina_noche || '',
+      rutina_manana: evaluacion.rutina_manana || templateManana,
+      rutina_noche: evaluacion.rutina_noche || templateNoche,
     });
     setIsEvalModalOpen(true);
   };
@@ -227,6 +229,17 @@ export default function ExpedientePage() {
           <div className="flex flex-wrap gap-2 mt-6">
             <button className="text-xs bg-green-100 text-green-700 font-bold px-4 py-2 rounded-full flex items-center gap-2">
               <span className="text-[16px]">📱</span> {paciente.telefono}
+            </button>
+            <button 
+              onClick={() => {
+                const url = `${window.location.origin}/pwa`;
+                const msg = `¡Hola ${paciente.nombre}! Ya puedes acceder a tu app personalizada de Skincare.\n\nEnlace: ${url}\nTu código de acceso es: ${paciente.id}`;
+                navigator.clipboard.writeText(msg);
+                alert('¡Mensaje y código copiados al portapapeles!');
+              }}
+              className="text-xs bg-blue-100 text-blue-700 font-bold px-4 py-2 rounded-full flex items-center gap-2 transition hover:bg-blue-200"
+            >
+              <Copy className="w-4 h-4" /> Copiar Acceso PWA
             </button>
             <button onClick={handleDeletePaciente} className="text-xs bg-red-50 text-red-600 font-bold px-4 py-2 rounded-full ml-auto">
               Eliminar

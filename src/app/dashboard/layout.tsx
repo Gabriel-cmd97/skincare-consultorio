@@ -114,6 +114,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
+  // Si es la página de login, no mostrar el layout del dashboard
+  if (pathname === '/dashboard/login') {
+    return <>{children}</>;
+  }
+
+  // Si no hay usuario y ya terminamos de checar, bloqueamos la vista hasta que redirija
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col lg:flex-row">
       {/* Sidebar - Solo visible en desktop */}

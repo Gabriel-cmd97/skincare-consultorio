@@ -460,6 +460,51 @@ export default function ExpedientePage() {
                 <label className="text-xs font-bold text-gray-500 uppercase">Motivo de Consulta</label>
                 <input type="text" value={evalData.motivo_consulta} onChange={e => setEvalData({...evalData, motivo_consulta: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 mt-1 outline-none" />
               </div>
+
+              {/* Datos Clínicos */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-bold text-primary-500 uppercase tracking-widest border-b border-gray-100 pb-2">Datos Clínicos de la Piel</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase">Fototipo</label>
+                    <select value={evalData.fototipo} onChange={e => setEvalData({...evalData, fototipo: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 mt-1 outline-none">
+                      <option value="I">I – Muy Claro</option>
+                      <option value="II">II – Claro</option>
+                      <option value="III">III – Intermedio</option>
+                      <option value="IV">IV – Mediterráneo</option>
+                      <option value="V">V – Moreno</option>
+                      <option value="VI">VI – Muy Oscuro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase">Hidratación</label>
+                    <select value={evalData.hidratacion} onChange={e => setEvalData({...evalData, hidratacion: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 mt-1 outline-none">
+                      <option value="baja">Baja</option>
+                      <option value="media">Media</option>
+                      <option value="alta">Alta</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase">Sensibilidad</label>
+                    <select value={evalData.sensibilidad ? 'alta' : 'normal'} onChange={e => setEvalData({...evalData, sensibilidad: e.target.value === 'alta'})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 mt-1 outline-none">
+                      <option value="normal">Normal</option>
+                      <option value="alta">Alta</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase">Objetivo Principal</label>
+                    <select value={evalData.objetivo} onChange={e => setEvalData({...evalData, objetivo: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 mt-1 outline-none">
+                      <option value="Estético">Estético</option>
+                      <option value="Médico">Médico</option>
+                      <option value="Preventivo">Preventivo</option>
+                      <option value="Anti-edad">Anti-edad</option>
+                      <option value="Acné">Acné</option>
+                      <option value="Manchas">Manchas</option>
+                      <option value="Rosácea">Rosácea</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>

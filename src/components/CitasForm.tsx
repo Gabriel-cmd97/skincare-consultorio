@@ -253,8 +253,14 @@ export default function CitasForm() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all bg-white"
           >
             <option value="Limpieza Facial">Limpieza Facial Profunda</option>
-            <option value="Peeling">Peeling Químico</option>
-            <option value="Tratamiento Acné">Tratamiento para Acné</option>
+            <option value="Tratamiento Acne">Tratamiento para Acné</option>
+            <option value="Anti Edad">Tratamiento anti-edad</option>
+            <option value="Rosacea">Tratamiento para rosácea</option>
+            <option value="Post Operatorio">Tratamiento pre/post-operatorio masajes</option>
+            <option value="Reductivo">Tratamiento reductivo reafirmante de abdomen</option>
+            <option value="Presoterapia">Presoterapia</option>
+            <option value="Masaje Relajante">Masaje relajante</option>
+            <option value="Drenaje Linfatico">Masaje de drenaje linfático</option>
             <option value="Valoracion">Valoración General</option>
           </select>
         </div>

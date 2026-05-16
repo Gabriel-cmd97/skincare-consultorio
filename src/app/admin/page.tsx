@@ -16,7 +16,8 @@ import {
   ArrowRight,
   Database,
   Download,
-  ToggleLeft
+  ToggleLeft,
+  ExternalLink
 } from 'lucide-react';
 import { verifyAdminPassword } from '@/actions/admin';
 

@@ -103,6 +103,9 @@ function VistaLogin({ onLogin }: { onLogin: (paciente: any) => void }) {
         </div>
         <h1 className="text-3xl font-serif font-bold text-primary-900">Bienvenida</h1>
         <p className="text-primary-500 text-sm">Ingresa tu código de paciente para acceder a tu portal personalizado.</p>
+        <p className="text-primary-400 text-xs mt-2 bg-primary-50 p-2 rounded-xl inline-block">
+          <span className="font-bold">Nota:</span> Este código te lo proporciona tu especialista en consulta.
+        </p>
       </div>
 
       <form onSubmit={handleLogin} className="space-y-4">

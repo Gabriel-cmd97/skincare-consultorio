@@ -18,7 +18,9 @@ import {
   Download,
   ToggleLeft,
   Users,
-  UserPlus
+  UserPlus,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export default function ConfigPage() {
@@ -58,6 +60,7 @@ export default function ConfigPage() {
   // Equipo Clinico
   const [specEmail, setSpecEmail] = useState('');
   const [specPassword, setSpecPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [creatingSpec, setCreatingSpec] = useState(false);
   const [specMessage, setSpecMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -455,15 +458,24 @@ export default function ConfigPage() {
               </div>
               <div className="flex-1 w-full">
                 <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Contraseña Temporal</label>
-                <input
-                  type="password"
-                  value={specPassword}
-                  onChange={(e) => setSpecPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
-                  required
-                  minLength={6}
-                  className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-cyan-500 outline-none transition"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={specPassword}
+                    onChange={(e) => setSpecPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                    minLength={6}
+                    className="w-full bg-white border border-slate-200 rounded-xl p-3 pr-10 text-sm focus:ring-2 focus:ring-cyan-500 outline-none transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
               <button
                 type="submit"

@@ -2,10 +2,54 @@ import type { Metadata } from "next";
 import "./globals.css";
 import PublicHeader from "@/components/PublicHeader";
 import { supabase } from "@/utils/supabase";
+import Image from "next/image";
+
+const SITE_URL = 'https://lrfisioderm.com';
 
 export const metadata: Metadata = {
-  title: "LR Fisioderm | Fisioterapia Dermatofuncional",
-  description: "Especialidad en Fisioterapia Dermatofuncional con enfoque clínico en alteraciones de la piel y tejidos.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "LR Fisioderm | Fisioterapia Dermatofuncional en Toluca",
+    template: "%s | LR Fisioderm",
+  },
+  description: "Especialistas en Fisioterapia Dermatofuncional en Toluca, Estado de México. Tratamientos clínicos para piel grasa, acné, manchas, rejuvenecimiento y más. Agenda tu cita hoy.",
+  keywords: ["fisioterapia dermatofuncional", "especialista piel toluca", "acné toluca", "tratamiento facial toluca", "LR Fisioderm", "rejuvenecimiento facial", "limpieza facial profunda"],
+  authors: [{ name: "LR Fisioderm" }],
+  creator: "LR Fisioderm",
+  openGraph: {
+    type: "website",
+    locale: "es_MX",
+    url: SITE_URL,
+    siteName: "LR Fisioderm",
+    title: "LR Fisioderm | Fisioterapia Dermatofuncional en Toluca",
+    description: "Tratamientos clínicos especializados para el cuidado y rehabilitación de tu piel. Agenda tu valoración en Toluca, México.",
+    images: [{
+      url: "/og-image.png",
+      width: 1200,
+      height: 630,
+      alt: "LR Fisioderm - Fisioterapia Dermatofuncional Toluca",
+    }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LR Fisioderm | Fisioterapia Dermatofuncional",
+    description: "Tratamientos clínicos especializados para el cuidado de tu piel en Toluca.",
+    images: ["/og-image.png"],
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+    ],
+    apple: "/favicon.png",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
+  },
+  alternates: {
+    canonical: SITE_URL,
+  },
 };
 
 // Helper: Convierte HEX a "R G B"
@@ -72,13 +116,44 @@ export default async function RootLayout({
         ` }} />
       </head>
       <body className="antialiased min-h-screen flex flex-col font-sans">
+        {/* Schema.org JSON-LD para SEO Local - Le dice a Google exactamente qué es tu negocio */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "MedicalBusiness",
+            "name": "LR Fisioderm",
+            "description": "Especialistas en Fisioterapia Dermatofuncional en Toluca. Tratamientos clínicos para acné, manchas, rejuvenecimiento facial y más.",
+            "url": "https://lrfisioderm.com",
+            "logo": "https://lrfisioderm.com/logo.png",
+            "image": "https://lrfisioderm.com/og-image.png",
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Toluca de Lerdo",
+              "addressRegion": "Estado de México",
+              "addressCountry": "MX"
+            },
+            "openingHoursSpecification": [
+              { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "09:00", "closes": "18:00" },
+              { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "09:00", "closes": "14:00" }
+            ],
+            "sameAs": ["https://www.instagram.com/lr_fisderm"],
+            "medicalSpecialty": "Dermatology",
+            "priceRange": "$$"
+          }) }}
+        />
         <PublicHeader>
           <header className="bg-white/80 backdrop-blur-md border-b border-primary-100 text-primary-900 p-4 sticky top-0 z-50 transition-all duration-300">
           <div className="container mx-auto flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-serif font-bold text-xl border border-primary-200">
-                LR
-              </div>
+              <Image
+                src="/logo.png"
+                alt="LR Fisioderm - Fisioterapia Dermatofuncional"
+                width={44}
+                height={44}
+                className="rounded-full border border-primary-200 object-cover"
+                priority
+              />
               <h1 className="text-xl md:text-2xl font-serif font-bold tracking-tight text-primary-800">
                 LR <span className="font-sans font-light text-primary-500 text-base md:text-lg">Fisioderm</span>
               </h1>
@@ -113,6 +188,13 @@ export default async function RootLayout({
               <a href="/pwa" className="text-[10px] uppercase tracking-wider font-bold text-primary-600 bg-primary-50 px-2.5 py-1.5 rounded-lg border border-primary-100">
                 Pacientes
               </a>
+              <Image
+                src="/logo.png"
+                alt="LR Fisioderm"
+                width={32}
+                height={32}
+                className="rounded-full border border-primary-200 object-cover"
+              />
               <a href="/dashboard/login" className="text-primary-200 p-2" title="Panel Especialista">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
               </a>
@@ -126,8 +208,11 @@ export default async function RootLayout({
         <PublicHeader>
         <footer className="bg-primary-900 text-primary-100 py-16 mt-auto">
           <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
-            <div>
-              <h2 className="text-2xl font-serif font-bold text-white mb-6">LR Fisioderm</h2>
+          <div>
+              <div className="flex items-center gap-3 mb-6">
+                <Image src="/logo.png" alt="LR Fisioderm" width={48} height={48} className="rounded-full border-2 border-primary-700 object-cover" />
+                <h2 className="text-2xl font-serif font-bold text-white">LR Fisioderm</h2>
+              </div>
               <p className="text-primary-200/80 leading-relaxed max-w-xs mx-auto md:mx-0">
                 Fisioterapia Dermatofuncional con enfoque clínico en alteraciones de la piel y tejidos.
               </p>

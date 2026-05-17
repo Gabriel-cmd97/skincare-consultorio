@@ -44,7 +44,7 @@ function VistaLogin({ onLogin }: { onLogin: (paciente: any) => void }) {
 
   useEffect(() => {
     async function fetchConfig() {
-      const { data } = await supabase.from('configuracion').select('valor').eq('llave', 'especialista_info').single();
+      const { data } = await supabase.from('configuracion').select('valor').eq('clave', 'especialista_info').single();
       if (data && data.valor && data.valor.instagram) {
         setInstagramUser(data.valor.instagram.replace('@', ''));
       }

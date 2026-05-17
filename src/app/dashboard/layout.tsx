@@ -34,6 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [moduleStore, setModuleStore] = useState(true);
   const [moduleTips, setModuleTips] = useState(true);
   const [logoUrl, setLogoUrl] = useState('/logo.png');
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -67,13 +68,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     fetchUnreadCount();
 
     const fetchConfig = async () => {
-      const { data } = await supabase.from('configuracion').select('clave, valor').in('clave', ['module_store', 'module_tips', 'logo_url']);
+      const { data } = await supabase.from('configuracion').select('clave, valor').in('clave', ['module_store', 'module_tips', 'logo_url', 'admin_email']);
       if (data) {
+        let adminEmail = '';
         data.forEach(item => {
           if (item.clave === 'module_store') setModuleStore(item.valor === 'true');
           if (item.clave === 'module_tips') setModuleTips(item.valor === 'true');
           if (item.clave === 'logo_url' && item.valor) setLogoUrl(item.valor);
+          if (item.clave === 'admin_email' && item.valor) adminEmail = item.valor;
         });
+
+        // Check admin role
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.email === adminEmail) {
+          setIsAdmin(true);
+        }
       }
     };
     fetchConfig();
@@ -190,6 +199,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {link.label}
             </Link>
           ))}
+
+          {isAdmin && (
+            <Link
+              href="/dashboard/configuracion"
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+                isActive('/dashboard/configuracion')
+                  ? 'bg-primary-600 text-white shadow-md'
+                  : 'text-primary-300 hover:bg-primary-800 hover:text-white'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>
+              Configuración
+            </Link>
+          )}
         </nav>
 
         <div className="p-4 border-t border-primary-800 space-y-2">
@@ -270,14 +293,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </span>
           </Link>
         ))}
-        {/* Botón de Ajustes rápido */}
-        <Link 
-          href="/dashboard/configuracion"
-          className={`flex flex-col items-center gap-1 ${isActive('/dashboard/configuracion') ? 'text-primary-600' : 'text-primary-300'}`}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>
-          <span className="text-[9px] font-bold uppercase tracking-tighter">Config</span>
-        </Link>
+        {/* Botón de Ajustes rápido - Solo Admin */}
+        {isAdmin && (
+          <Link 
+            href="/dashboard/configuracion"
+            className={`flex flex-col items-center gap-1 ${isActive('/dashboard/configuracion') ? 'text-primary-600' : 'text-primary-300'}`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>
+            <span className="text-[9px] font-bold uppercase tracking-tighter">Config</span>
+          </Link>
+        )}
       </nav>
     </div>
   );

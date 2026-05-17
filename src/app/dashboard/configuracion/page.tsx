@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabase';
 import { useRouter } from 'next/navigation';
 import { testWhatsAppConnection } from '@/actions/notificaciones';
+import { createSpecialistProfile } from '@/actions/users';
 import { 
   Palette, 
   Image as ImageIcon, 
@@ -15,7 +16,9 @@ import {
   Terminal,
   Database,
   Download,
-  ToggleLeft
+  ToggleLeft,
+  Users,
+  UserPlus
 } from 'lucide-react';
 
 export default function ConfigPage() {
@@ -51,6 +54,12 @@ export default function ConfigPage() {
   const [testingWA, setTestingWA] = useState(false);
   const [waLogs, setWaLogs] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
+
+  // Equipo Clinico
+  const [specEmail, setSpecEmail] = useState('');
+  const [specPassword, setSpecPassword] = useState('');
+  const [creatingSpec, setCreatingSpec] = useState(false);
+  const [specMessage, setSpecMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
     checkAdminAndFetchConfig();
@@ -166,6 +175,23 @@ export default function ConfigPage() {
     } finally {
       setExporting(false);
     }
+  };
+
+  const handleCreateSpecialist = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingSpec(true);
+    setSpecMessage(null);
+
+    const result = await createSpecialistProfile(specEmail, specPassword);
+
+    if (result.success) {
+      setSpecMessage({ type: 'success', text: 'Especialista creado exitosamente. Ya puede iniciar sesión.' });
+      setSpecEmail('');
+      setSpecPassword('');
+    } else {
+      setSpecMessage({ type: 'error', text: result.error || 'Error al crear el perfil.' });
+    }
+    setCreatingSpec(false);
   };
 
   if (loading || isAdmin === null) {
@@ -403,6 +429,59 @@ export default function ConfigPage() {
                 </button>
               ))}
             </div>
+          </section>
+        </div>
+
+        {/* Fila inferior completa: Equipo Clínico */}
+        <div className="md:col-span-2 lg:col-span-3">
+          <section className="bg-white p-6 rounded-3xl shadow-sm border border-primary-50">
+            <div className="flex items-center gap-3 text-cyan-600 mb-2">
+              <Users className="w-6 h-6" />
+              <h2 className="text-xl font-bold">Equipo Clínico</h2>
+            </div>
+            <p className="text-primary-600 mb-6 text-sm">Crea cuentas de acceso para tus especialistas sin salir del panel. Ellos tendrán acceso restringido únicamente al área clínica.</p>
+            
+            <form onSubmit={handleCreateSpecialist} className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col md:flex-row gap-4 items-end">
+              <div className="flex-1 w-full">
+                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Correo del Especialista</label>
+                <input
+                  type="email"
+                  value={specEmail}
+                  onChange={(e) => setSpecEmail(e.target.value)}
+                  placeholder="especialista@lrfisioderm.com"
+                  required
+                  className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-cyan-500 outline-none transition"
+                />
+              </div>
+              <div className="flex-1 w-full">
+                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Contraseña Temporal</label>
+                <input
+                  type="password"
+                  value={specPassword}
+                  onChange={(e) => setSpecPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  required
+                  minLength={6}
+                  className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-cyan-500 outline-none transition"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={creatingSpec || !specEmail || specPassword.length < 6}
+                className="w-full md:w-auto py-3 px-6 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition disabled:opacity-50 h-[46px]"
+              >
+                {creatingSpec ? <RefreshCw className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                {creatingSpec ? 'Creando...' : 'Crear Perfil'}
+              </button>
+            </form>
+            
+            {specMessage && (
+              <div className={`mt-4 p-4 rounded-xl border text-sm font-medium ${
+                specMessage.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700'
+              }`}>
+                {specMessage.text}
+              </div>
+            )}
           </section>
         </div>
 

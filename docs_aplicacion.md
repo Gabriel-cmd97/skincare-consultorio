@@ -14,13 +14,18 @@ La plataforma cuenta con un enfoque "mobile-first" y está dividida en dos ecosi
 
 ## Módulos Core Implementados
 
-### 1. Panel de Especialista (100% Responsivo)
-- **Navegación Inteligente:** En escritorio usa un Sidebar permanente (`sticky`), en móviles (celulares) colapsa a una **Barra de Navegación Inferior (Bottom-Nav)** estilo app nativa para pulgar.
-- **Configuración de Marca (`/dashboard/configuracion`):** Interfaz para inyectar dinámicamente en la base de datos:
-  - URL del Logotipo.
-  - Color Primario (Acento).
-  - Número de WhatsApp para ventas/pedidos.
-- **Seeding de Catálogo (`/dashboard/seed`):** Módulo de carga rápida de datos reales para inicializar la tienda con productos de grado médico premium (Vitamina C, Protector Solar, etc.).
+### 1. Panel Consolidado y Arquitectura RBAC (SaaS)
+- **Roles y Accesos:** El sistema identifica dos roles: Súper Administrador y Especialista Clínico. 
+  - La verificación ocurre evaluando `user.email === admin_email` (llave en la BD).
+  - El **Administrador** tiene acceso exclusivo a la ruta `/dashboard/configuracion`.
+  - Los **Especialistas Clínicos** inician sesión por el mismo portal pero no tienen acceso a la configuración del negocio.
+- **Configuración Maestra (SaaS):** Interfaz centralizada para inyectar dinámicamente:
+  - Marca: Logotipo y Color Primario (Acento).
+  - Infraestructura: Número de WhatsApp, API Key de CallMeBot y URL Base.
+  - Visibilidad: Activar/desactivar secciones enteras de la Landing Page pública y habilitar/deshabilitar módulos de Tienda y Tips.
+- **Gestión de Equipo Clínico:** Herramienta integrada en el panel que utiliza una Server Action con la `SUPABASE_SERVICE_ROLE_KEY` para crear perfiles de especialistas directamente en el sistema de autenticación de Supabase sin cerrar la sesión del Administrador.
+- **Respaldo de Datos:** Exportación segura de un snapshot en formato JSON con la información de Pacientes y Citas con un solo clic.
+- **Seeding de Catálogo (`/dashboard/seed`):** Módulo de carga rápida de datos reales para inicializar la tienda con productos de grado médico premium.
 - **Lista de Pacientes Dual:** 
   - *Escritorio:* Tabla de datos estructurada con columnas.
   - *Móvil:* Diseño de tarjetas (Cards) táctiles, previniendo el "scroll" horizontal.
@@ -45,13 +50,20 @@ La plataforma cuenta con un enfoque "mobile-first" y está dividida en dos ecosi
   - Página dedicada `Mobile-First` en `/dashboard/notificaciones` para gestionar, leer y acceder al contenido de las notificaciones.
 - **Alertas Push (WhatsApp):** Integración con la API gratuita de **CallMeBot** mediante una `Server Action` de Next.js, la cual envía un mensaje de texto automático al WhatsApp del especialista cada vez que se genera un evento crítico (ej. una cita nueva), funcionando de manera nativa sobre el entorno de Cloudflare Pages.
 
+## SEO y Optimización Dinámica
+- **Metadata Dinámica (`generateMetadata`):** Las etiquetas de SEO, título, descripción, íconos y el esquema de Google se generan en tiempo real leyendo la configuración de marca (Logotipo) desde Supabase.
+- **JSON-LD Schema:** Integración estructurada de datos tipo `MedicalBusiness` para mejor posicionamiento en SEO local.
+- **Redes Sociales:** Implementación nativa de Open Graph y Twitter Cards dinámicas.
+
 ## Seguridad y Conexión (Supabase)
 * **Auth:** La ruta `/dashboard` está protegida por Supabase Auth (JWT verificado en el cliente).
 * **Storage:** Bucket `avatares` público para subir imágenes de perfil.
 * **RLS (Row-Level Security):**
   - `productos`, `tips_rutinas` y `configuracion` accesibles públicamente (modo lectura) vía rol `anon`.
   - `pacientes` accesible públicamente (con conocimiento de UUID exacto) para permitir que la PWA lea el perfil del paciente con el código correcto.
-* **Claves:** El entorno local (`.env.local`) y de producción (Cloudflare) utilizan `NEXT_PUBLIC_SUPABASE_URL` y la clave `anon` (`NEXT_PUBLIC_SUPABASE_ANON_KEY`).
+* **Claves Requeridas:** 
+  - `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` para el flujo principal y PWA.
+  - `SUPABASE_SERVICE_ROLE_KEY` requerida para la gestión del Equipo Clínico (evita el cierre de sesión del admin al crear usuarios).
 
 ## Siguientes Pasos Futuros (Versiones Posteriores)
 * Habilitar enlaces de pago reales con Stripe para los productos en caso de querer cobrar con tarjeta (actualmente gestionado por WhatsApp).

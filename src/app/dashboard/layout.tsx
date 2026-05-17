@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/utils/supabase';
+import Image from 'next/image';
 
 const NAV_LINKS = [
   { href: '/dashboard', label: 'Panel Principal', icon: (
@@ -131,9 +132,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Logo con Link a la Web Principal */}
         <div className="p-8 border-b border-primary-800">
           <Link href="/" className="flex items-center gap-3 group" title="Ir al Sitio Web">
-            <div className="w-11 h-11 bg-primary-600 rounded-xl flex items-center justify-center text-white font-serif font-bold text-xl shadow-lg group-hover:bg-primary-500 transition-colors">
-              LR
-            </div>
+            <Image
+              src="/logo.png"
+              alt="LR Fisioderm"
+              width={44}
+              height={44}
+              className="rounded-xl border border-primary-700 object-cover shadow-lg group-hover:opacity-90 transition-opacity"
+            />
             <div>
               <h2 className="text-base font-serif font-bold text-white leading-tight">LR Fisioderm</h2>
               <p className="text-primary-400 text-[10px] uppercase tracking-widest font-bold mt-1 group-hover:text-primary-200 transition-colors flex items-center gap-1">
@@ -222,7 +227,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Header Móvil - Solo visible en móvil */}
       <header className="lg:hidden bg-primary-900 text-white p-4 flex justify-between items-center sticky top-0 z-[60] shadow-md">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center font-serif font-bold text-sm">LR</div>
+          <Image src="/logo.png" alt="LR Fisioderm" width={32} height={32} className="rounded-lg border border-primary-700 object-cover" />
           <span className="font-serif font-bold text-sm tracking-tight">LR Fisioderm</span>
         </Link>
         <div className="flex items-center gap-2">

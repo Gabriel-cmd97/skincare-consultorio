@@ -1,7 +1,9 @@
+import React from "react";
 import CitasForm from "@/components/CitasForm";
 import ProductoCard from "@/components/ProductoCard";
 import { supabase } from "@/utils/supabase";
 import { Sparkles, Activity, ShieldCheck, MapPin, Phone, Mail, Clock, Instagram, Star, ArrowRight, UserCircle2, CheckCircle2 } from "lucide-react";
+
 
 // Revalidar los datos cada 60 segundos
 export const revalidate = 60;

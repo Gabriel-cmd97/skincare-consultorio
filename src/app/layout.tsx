@@ -6,51 +6,66 @@ import Image from "next/image";
 
 const SITE_URL = 'https://lrfisioderm.com';
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: "LR Fisioderm | Fisioterapia Dermatofuncional en Toluca",
-    template: "%s | LR Fisioderm",
-  },
-  description: "Especialistas en Fisioterapia Dermatofuncional en Toluca, Estado de México. Tratamientos clínicos para piel grasa, acné, manchas, rejuvenecimiento y más. Agenda tu cita hoy.",
-  keywords: ["fisioterapia dermatofuncional", "especialista piel toluca", "acné toluca", "tratamiento facial toluca", "LR Fisioderm", "rejuvenecimiento facial", "limpieza facial profunda"],
-  authors: [{ name: "LR Fisioderm" }],
-  creator: "LR Fisioderm",
-  openGraph: {
-    type: "website",
-    locale: "es_MX",
-    url: SITE_URL,
-    siteName: "LR Fisioderm",
-    title: "LR Fisioderm | Fisioterapia Dermatofuncional en Toluca",
-    description: "Tratamientos clínicos especializados para el cuidado y rehabilitación de tu piel. Agenda tu valoración en Toluca, México.",
-    images: [{
-      url: "/og-image.png",
-      width: 1200,
-      height: 630,
-      alt: "LR Fisioderm - Fisioterapia Dermatofuncional Toluca",
-    }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "LR Fisioderm | Fisioterapia Dermatofuncional",
-    description: "Tratamientos clínicos especializados para el cuidado de tu piel en Toluca.",
-    images: ["/og-image.png"],
-  },
-  icons: {
-    icon: [
-      { url: "/favicon.png", type: "image/png" },
-    ],
-    apple: "/favicon.png",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
-  },
-  alternates: {
-    canonical: SITE_URL,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  let primaryColor = '#D29C9F';
+  let logoUrl = '/logo.png';
+
+  try {
+    const { data } = await supabase.from('configuracion').select('clave, valor').in('clave', ['primary_color', 'logo_url']);
+    if (data) {
+      data.forEach(item => {
+        if (item.clave === 'primary_color' && item.valor) primaryColor = item.valor;
+        if (item.clave === 'logo_url' && item.valor) logoUrl = item.valor;
+      });
+    }
+  } catch (e) {}
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: "LR Fisioderm | Fisioterapia Dermatofuncional en Toluca",
+      template: "%s | LR Fisioderm",
+    },
+    description: "Especialistas en Fisioterapia Dermatofuncional en Toluca, Estado de México. Tratamientos clínicos para piel grasa, acné, manchas, rejuvenecimiento y más. Agenda tu cita hoy.",
+    keywords: ["fisioterapia dermatofuncional", "especialista piel toluca", "acné toluca", "tratamiento facial toluca", "LR Fisioderm", "rejuvenecimiento facial", "limpieza facial profunda"],
+    authors: [{ name: "LR Fisioderm" }],
+    creator: "LR Fisioderm",
+    openGraph: {
+      type: "website",
+      locale: "es_MX",
+      url: SITE_URL,
+      siteName: "LR Fisioderm",
+      title: "LR Fisioderm | Fisioterapia Dermatofuncional en Toluca",
+      description: "Tratamientos clínicos especializados para el cuidado y rehabilitación de tu piel. Agenda tu valoración en Toluca, México.",
+      images: [{
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "LR Fisioderm - Fisioterapia Dermatofuncional Toluca",
+      }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "LR Fisioderm | Fisioterapia Dermatofuncional",
+      description: "Tratamientos clínicos especializados para el cuidado de tu piel en Toluca.",
+      images: ["/og-image.png"],
+    },
+    icons: {
+      icon: [
+        { url: logoUrl, type: "image/png" },
+      ],
+      apple: logoUrl,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
+    },
+    alternates: {
+      canonical: SITE_URL,
+    },
+  };
+}
 
 // Helper: Convierte HEX a "R G B"
 function hexToRgb(hex: string) {
@@ -78,14 +93,16 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   let showStore = true;
-  let primaryColor = '#b87c6f'; // default original Rosa Palo
+  let primaryColor = '#D29C9F'; // default original Rosa Palo
+  let logoUrl = '/logo.png';
 
   try {
-    const { data } = await supabase.from('configuracion').select('clave, valor').in('clave', ['module_store', 'primary_color']);
+    const { data } = await supabase.from('configuracion').select('clave, valor').in('clave', ['module_store', 'primary_color', 'logo_url']);
     if (data) {
       data.forEach(item => {
         if (item.clave === 'module_store' && item.valor === 'false') showStore = false;
         if (item.clave === 'primary_color' && item.valor) primaryColor = item.valor;
+        if (item.clave === 'logo_url' && item.valor) logoUrl = item.valor;
       });
     }
   } catch (e) {
@@ -125,7 +142,7 @@ export default async function RootLayout({
             "name": "LR Fisioderm",
             "description": "Especialistas en Fisioterapia Dermatofuncional en Toluca. Tratamientos clínicos para acné, manchas, rejuvenecimiento facial y más.",
             "url": "https://lrfisioderm.com",
-            "logo": "https://lrfisioderm.com/logo.png",
+            "logo": logoUrl.startsWith('http') ? logoUrl : `https://lrfisioderm.com${logoUrl}`,
             "image": "https://lrfisioderm.com/og-image.png",
             "address": {
               "@type": "PostalAddress",
@@ -147,7 +164,7 @@ export default async function RootLayout({
           <div className="container mx-auto flex justify-between items-center">
             <div className="flex items-center gap-3">
               <Image
-                src="/logo.png"
+                src={logoUrl}
                 alt="LR Fisioderm - Fisioterapia Dermatofuncional"
                 width={44}
                 height={44}
@@ -189,7 +206,7 @@ export default async function RootLayout({
                 Pacientes
               </a>
               <Image
-                src="/logo.png"
+                src={logoUrl}
                 alt="LR Fisioderm"
                 width={32}
                 height={32}
@@ -210,7 +227,7 @@ export default async function RootLayout({
           <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
           <div>
               <div className="flex items-center gap-3 mb-6">
-                <Image src="/logo.png" alt="LR Fisioderm" width={48} height={48} className="rounded-full border-2 border-primary-700 object-cover" />
+                <Image src={logoUrl} alt="LR Fisioderm" width={48} height={48} className="rounded-full border-2 border-primary-700 object-cover" />
                 <h2 className="text-2xl font-serif font-bold text-white">LR Fisioderm</h2>
               </div>
               <p className="text-primary-200/80 leading-relaxed max-w-xs mx-auto md:mx-0">

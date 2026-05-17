@@ -33,6 +33,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [unreadCount, setUnreadCount] = useState(0);
   const [moduleStore, setModuleStore] = useState(true);
   const [moduleTips, setModuleTips] = useState(true);
+  const [logoUrl, setLogoUrl] = useState('/logo.png');
   const router = useRouter();
   const pathname = usePathname();
 
@@ -66,11 +67,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     fetchUnreadCount();
 
     const fetchConfig = async () => {
-      const { data } = await supabase.from('configuracion').select('clave, valor').in('clave', ['module_store', 'module_tips']);
+      const { data } = await supabase.from('configuracion').select('clave, valor').in('clave', ['module_store', 'module_tips', 'logo_url']);
       if (data) {
         data.forEach(item => {
           if (item.clave === 'module_store') setModuleStore(item.valor === 'true');
           if (item.clave === 'module_tips') setModuleTips(item.valor === 'true');
+          if (item.clave === 'logo_url' && item.valor) setLogoUrl(item.valor);
         });
       }
     };
@@ -133,7 +135,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="p-8 border-b border-primary-800">
           <Link href="/" className="flex items-center gap-3 group" title="Ir al Sitio Web">
             <Image
-              src="/logo.png"
+              src={logoUrl}
               alt="LR Fisioderm"
               width={44}
               height={44}
@@ -227,7 +229,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Header Móvil - Solo visible en móvil */}
       <header className="lg:hidden bg-primary-900 text-white p-4 flex justify-between items-center sticky top-0 z-[60] shadow-md">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.png" alt="LR Fisioderm" width={32} height={32} className="rounded-lg border border-primary-700 object-cover" />
+          <Image src={logoUrl} alt="LR Fisioderm" width={32} height={32} className="rounded-lg border border-primary-700 object-cover" />
           <span className="font-serif font-bold text-sm tracking-tight">LR Fisioderm</span>
         </Link>
         <div className="flex items-center gap-2">

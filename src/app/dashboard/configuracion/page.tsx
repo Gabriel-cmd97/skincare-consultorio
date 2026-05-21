@@ -546,6 +546,8 @@ export default function ConfigPage() {
                   onChange={(e) => setSpecEmail(e.target.value)}
                   placeholder="especialista@lrfisioderm.com"
                   required
+                  autoComplete="off"
+                  name="specialist-email-new"
                   className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-cyan-500 outline-none transition"
                 />
               </div>
@@ -559,6 +561,8 @@ export default function ConfigPage() {
                     placeholder="Mínimo 6 caracteres"
                     required
                     minLength={6}
+                    autoComplete="new-password"
+                    name="specialist-password-new"
                     className="w-full bg-white border border-slate-200 rounded-xl p-3 pr-10 text-sm focus:ring-2 focus:ring-cyan-500 outline-none transition"
                   />
                   <button
@@ -649,6 +653,8 @@ export default function ConfigPage() {
                                       placeholder="Nueva contraseña"
                                       required
                                       minLength={6}
+                                      autoComplete="new-password"
+                                      name="specialist-password-update"
                                       className="w-full p-2 pr-8 border border-slate-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-cyan-500"
                                     />
                                     <button

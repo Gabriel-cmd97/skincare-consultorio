@@ -98,3 +98,28 @@ export async function deleteSpecialist(userId: string) {
   }
 }
 
+export async function toggleSpecialistAccess(userId: string, isCurrentlyBanned: boolean) {
+  try {
+    if (!userId) {
+      return { success: false, error: 'ID de usuario no proporcionado.' };
+    }
+    // Si ya está baneado, la ban_duration se establece a 'none' para desbloquearlo.
+    // Si no está baneado, se le bloquea de forma indefinida ('infinite').
+    const newBanDuration = isCurrentlyBanned ? 'none' : 'infinite';
+    
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      ban_duration: newBanDuration
+    });
+    
+    if (error) {
+      console.error('Error al cambiar estado de suspensión:', error);
+      return { success: false, error: error.message || 'No se pudo modificar el estado de acceso.' };
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Excepción al suspender/reactivar especialista:', error);
+    return { success: false, error: 'Ha ocurrido un error inesperado.' };
+  }
+}
+
+

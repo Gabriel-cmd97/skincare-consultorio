@@ -27,7 +27,8 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setError('Email o contraseña incorrectos. Verifica tus datos.');
+      // Mostrar el mensaje de error real de Supabase para diagnóstico claro
+      setError(error.message || 'Email o contraseña incorrectos. Verifica tus datos.');
       setLoading(false);
     } else {
       router.replace('/dashboard');

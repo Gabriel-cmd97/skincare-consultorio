@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabase';
 import { useRouter } from 'next/navigation';
 import { testWhatsAppConnection } from '@/actions/notificaciones';
-import { createSpecialistProfile, listSpecialists, updateSpecialistPassword, deleteSpecialist } from '@/actions/users';
+import { createSpecialistProfile, listSpecialists, updateSpecialistPassword, deleteSpecialist, toggleSpecialistAccess } from '@/actions/users';
 import { 
   Palette, 
   Image as ImageIcon, 
@@ -24,7 +24,9 @@ import {
   Trash2,
   Key,
   X,
-  Check
+  Check,
+  Lock,
+  Unlock
 } from 'lucide-react';
 
 export default function ConfigPage() {
@@ -262,6 +264,28 @@ export default function ConfigPage() {
       }
     } else {
       setSpecMessage({ type: 'error', text: res.error || 'No se pudo eliminar al especialista.' });
+      setLoadingSpecialists(false);
+    }
+  };
+
+  const handleToggleAccess = async (userId: string, email: string, isCurrentlyBanned: boolean) => {
+    const actionText = isCurrentlyBanned ? 'reactivar' : 'desactivar (suspender)';
+    if (!window.confirm(`¿Estás seguro de que deseas ${actionText} el acceso de ${email}?`)) {
+      return;
+    }
+    setLoadingSpecialists(true);
+    setSpecMessage(null);
+    const res = await toggleSpecialistAccess(userId, isCurrentlyBanned);
+    if (res.success) {
+      setSpecMessage({ 
+        type: 'success', 
+        text: `Acceso del especialista ${isCurrentlyBanned ? 'reactivado' : 'suspendido'} con éxito.` 
+      });
+      if (adminEmail) {
+        await fetchSpecialists(adminEmail);
+      }
+    } else {
+      setSpecMessage({ type: 'error', text: res.error || 'No se pudo cambiar el estado de acceso.' });
       setLoadingSpecialists(false);
     }
   };
@@ -585,88 +609,124 @@ export default function ConfigPage() {
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">
                         <th className="p-4">Email</th>
+                        <th className="p-4">Estado</th>
                         <th className="p-4">Creado el</th>
                         <th className="p-4">Último Acceso</th>
                         <th className="p-4 text-right">Acciones</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                      {specialists.map((spec) => (
-                        <tr key={spec.id} className="hover:bg-slate-50/50 transition">
-                          <td className="p-4 font-semibold text-slate-700">{spec.email}</td>
-                          <td className="p-4 text-slate-500">
-                            {spec.created_at ? new Date(spec.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
-                          </td>
-                          <td className="p-4 text-slate-500">
-                            {spec.last_sign_in_at ? new Date(spec.last_sign_in_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Nunca'}
-                          </td>
-                          <td className="p-4 text-right">
-                            {editingSpecId === spec.id ? (
-                              <div className="flex flex-col md:flex-row gap-2 justify-end items-center">
-                                <div className="relative w-full md:w-48">
-                                  <input
-                                    type={showNewPassword ? 'text' : 'password'}
-                                    value={newSpecPassword}
-                                    onChange={(e) => setNewSpecPassword(e.target.value)}
-                                    placeholder="Nueva contraseña"
-                                    required
-                                    minLength={6}
-                                    className="w-full p-2 pr-8 border border-slate-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-cyan-500"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowNewPassword(!showNewPassword)}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                                  >
-                                    {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                                  </button>
+                      {specialists.map((spec) => {
+                        const isBanned = spec.banned_until && new Date(spec.banned_until) > new Date();
+                        return (
+                          <tr key={spec.id} className="hover:bg-slate-50/50 transition">
+                            <td className="p-4 font-semibold text-slate-700">{spec.email}</td>
+                            <td className="p-4">
+                              {isBanned ? (
+                                <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-rose-100 text-rose-700 inline-flex items-center gap-1">
+                                  <Lock className="w-3 h-3" /> Suspendido
+                                </span>
+                              ) : (
+                                <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700 inline-flex items-center gap-1">
+                                  <Unlock className="w-3 h-3" /> Activo
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-4 text-slate-500">
+                              {spec.created_at ? new Date(spec.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                            </td>
+                            <td className="p-4 text-slate-500">
+                              {spec.last_sign_in_at ? new Date(spec.last_sign_in_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Nunca'}
+                            </td>
+                            <td className="p-4 text-right">
+                              {editingSpecId === spec.id ? (
+                                <div className="flex flex-col md:flex-row gap-2 justify-end items-center">
+                                  <div className="relative w-full md:w-48">
+                                    <input
+                                      type={showNewPassword ? 'text' : 'password'}
+                                      value={newSpecPassword}
+                                      onChange={(e) => setNewSpecPassword(e.target.value)}
+                                      placeholder="Nueva contraseña"
+                                      required
+                                      minLength={6}
+                                      className="w-full p-2 pr-8 border border-slate-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-cyan-500"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowNewPassword(!showNewPassword)}
+                                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    >
+                                      {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                    </button>
+                                  </div>
+                                  <div className="flex gap-1.5 w-full md:w-auto justify-end">
+                                    <button
+                                      onClick={() => handleUpdatePassword(spec.id)}
+                                      disabled={updatingPassword || newSpecPassword.length < 6}
+                                      className="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition shadow-sm disabled:opacity-50"
+                                      title="Guardar contraseña"
+                                    >
+                                      {updatingPassword ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setEditingSpecId(null);
+                                        setNewSpecPassword('');
+                                      }}
+                                      className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl transition"
+                                      title="Cancelar"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
                                 </div>
-                                <div className="flex gap-1.5 w-full md:w-auto justify-end">
+                              ) : (
+                                <div className="flex gap-2 justify-end">
                                   <button
-                                    onClick={() => handleUpdatePassword(spec.id)}
-                                    disabled={updatingPassword || newSpecPassword.length < 6}
-                                    className="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition shadow-sm disabled:opacity-50"
-                                    title="Guardar contraseña"
+                                    onClick={() => handleToggleAccess(spec.id, spec.email, !!isBanned)}
+                                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition ${
+                                      isBanned
+                                        ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-100'
+                                        : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-100'
+                                    }`}
+                                    title={isBanned ? 'Reactivar acceso' : 'Suspender acceso temporalmente'}
                                   >
-                                    {updatingPassword ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                    {isBanned ? (
+                                      <>
+                                        <Unlock className="w-3.5 h-3.5 text-emerald-500" />
+                                        <span>Reactivar</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Lock className="w-3.5 h-3.5 text-amber-500" />
+                                        <span>Suspender</span>
+                                      </>
+                                    )}
                                   </button>
                                   <button
                                     onClick={() => {
-                                      setEditingSpecId(null);
+                                      setEditingSpecId(spec.id);
                                       setNewSpecPassword('');
+                                      setShowNewPassword(false);
                                     }}
-                                    className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl transition"
-                                    title="Cancelar"
+                                    className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl border border-slate-200 text-xs font-semibold transition"
                                   >
-                                    <X className="w-3.5 h-3.5" />
+                                    <Key className="w-3.5 h-3.5 text-cyan-600" />
+                                    <span>Contraseña</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteSpecialist(spec.id, spec.email)}
+                                    className="flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl border border-rose-100 text-xs font-semibold transition"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                                    <span>Eliminar</span>
                                   </button>
                                 </div>
-                              </div>
-                            ) : (
-                              <div className="flex gap-2 justify-end">
-                                <button
-                                  onClick={() => {
-                                    setEditingSpecId(spec.id);
-                                    setNewSpecPassword('');
-                                    setShowNewPassword(false);
-                                  }}
-                                  className="flex items-center gap-1 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl border border-slate-200 text-xs font-semibold transition"
-                                >
-                                  <Key className="w-3.5 h-3.5 text-cyan-600" />
-                                  <span>Contraseña</span>
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteSpecialist(spec.id, spec.email)}
-                                  className="flex items-center gap-1 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl border border-rose-100 text-xs font-semibold transition"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                                  <span>Eliminar</span>
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

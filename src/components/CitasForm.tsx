@@ -41,7 +41,7 @@ export default function CitasForm() {
       setHorariosDisponibles(horasGeneradas);
 
       try {
-        const { data } = await supabase.from('configuracion').select('llave, valor').eq('llave', 'servicios_content').single();
+        const { data } = await supabase.from('configuracion').select('clave, valor').eq('clave', 'servicios_content').single();
         if (data && data.valor && data.valor.servicios) {
           setTratamientosConfig(data.valor.servicios);
           if (data.valor.servicios.length > 0) {

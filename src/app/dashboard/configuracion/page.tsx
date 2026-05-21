@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabase';
 import { useRouter } from 'next/navigation';
 import { testWhatsAppConnection } from '@/actions/notificaciones';
-import { createSpecialistProfile } from '@/actions/users';
+import { createSpecialistProfile, listSpecialists, updateSpecialistPassword, deleteSpecialist } from '@/actions/users';
 import { 
   Palette, 
   Image as ImageIcon, 
@@ -20,7 +20,11 @@ import {
   Users,
   UserPlus,
   Eye,
-  EyeOff
+  EyeOff,
+  Trash2,
+  Key,
+  X,
+  Check
 } from 'lucide-react';
 
 export default function ConfigPage() {
@@ -64,6 +68,25 @@ export default function ConfigPage() {
   const [creatingSpec, setCreatingSpec] = useState(false);
   const [specMessage, setSpecMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
+  // Listado y acciones de especialistas
+  const [adminEmail, setAdminEmail] = useState('');
+  const [specialists, setSpecialists] = useState<any[]>([]);
+  const [loadingSpecialists, setLoadingSpecialists] = useState(false);
+  const [editingSpecId, setEditingSpecId] = useState<string | null>(null);
+  const [newSpecPassword, setNewSpecPassword] = useState('');
+  const [updatingPassword, setUpdatingPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  async function fetchSpecialists(email: string) {
+    if (!email) return;
+    setLoadingSpecialists(true);
+    const res = await listSpecialists(email);
+    if (res.success && res.specialists) {
+      setSpecialists(res.specialists);
+    }
+    setLoadingSpecialists(false);
+  }
+
   useEffect(() => {
     checkAdminAndFetchConfig();
   }, []);
@@ -74,11 +97,11 @@ export default function ConfigPage() {
       const { data: configData, error } = await supabase.from('configuracion').select('*');
       if (error) throw error;
 
-      let adminEmail = '';
+      let adminEmailVal = '';
 
       if (configData) {
         configData.forEach((item) => {
-          if (item.clave === 'admin_email') adminEmail = item.valor || '';
+          if (item.clave === 'admin_email') adminEmailVal = item.valor || '';
           if (item.clave === 'logo_url') setLogoUrl(item.valor || '');
           if (item.clave === 'primary_color') setPrimaryColor(item.valor || '');
           if (item.clave === 'whatsapp') setWhatsapp(item.valor || '');
@@ -98,12 +121,16 @@ export default function ConfigPage() {
 
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (!session || session.user.email !== adminEmail) {
+      if (!session || session.user.email !== adminEmailVal) {
         router.replace('/dashboard');
         return;
       }
       
       setIsAdmin(true);
+      setAdminEmail(adminEmailVal);
+      if (adminEmailVal) {
+        await fetchSpecialists(adminEmailVal);
+      }
 
     } catch (error) {
       console.error('Error fetching config:', error);
@@ -191,10 +218,52 @@ export default function ConfigPage() {
       setSpecMessage({ type: 'success', text: 'Especialista creado exitosamente. Ya puede iniciar sesión.' });
       setSpecEmail('');
       setSpecPassword('');
+      if (adminEmail) {
+        await fetchSpecialists(adminEmail);
+      }
     } else {
       setSpecMessage({ type: 'error', text: result.error || 'Error al crear el perfil.' });
     }
     setCreatingSpec(false);
+  };
+
+  const handleUpdatePassword = async (userId: string) => {
+    if (!newSpecPassword || newSpecPassword.length < 6) {
+      setSpecMessage({ type: 'error', text: 'La contraseña debe tener al menos 6 caracteres.' });
+      return;
+    }
+    setUpdatingPassword(true);
+    setSpecMessage(null);
+    const res = await updateSpecialistPassword(userId, newSpecPassword);
+    if (res.success) {
+      setSpecMessage({ type: 'success', text: 'Contraseña actualizada correctamente.' });
+      setEditingSpecId(null);
+      setNewSpecPassword('');
+      if (adminEmail) {
+        await fetchSpecialists(adminEmail);
+      }
+    } else {
+      setSpecMessage({ type: 'error', text: res.error || 'No se pudo actualizar la contraseña.' });
+    }
+    setUpdatingPassword(false);
+  };
+
+  const handleDeleteSpecialist = async (userId: string, email: string) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar la cuenta de ${email}? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    setLoadingSpecialists(true);
+    setSpecMessage(null);
+    const res = await deleteSpecialist(userId);
+    if (res.success) {
+      setSpecMessage({ type: 'success', text: 'Especialista eliminado correctamente.' });
+      if (adminEmail) {
+        await fetchSpecialists(adminEmail);
+      }
+    } else {
+      setSpecMessage({ type: 'error', text: res.error || 'No se pudo eliminar al especialista.' });
+      setLoadingSpecialists(false);
+    }
   };
 
   if (loading || isAdmin === null) {
@@ -494,6 +563,115 @@ export default function ConfigPage() {
                 {specMessage.text}
               </div>
             )}
+
+            {/* Listado de especialistas */}
+            <div className="mt-8 pt-8 border-t border-slate-100">
+              <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-cyan-600" />
+                Especialistas Activos ({specialists.length})
+              </h3>
+
+              {loadingSpecialists ? (
+                <div className="flex justify-center items-center py-8">
+                  <RefreshCw className="w-6 h-6 text-cyan-600 animate-spin" />
+                </div>
+              ) : specialists.length === 0 ? (
+                <div className="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                  <p className="text-sm text-slate-500 font-medium">No hay especialistas registrados aún.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white">
+                  <table className="w-full text-left border-collapse text-sm">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        <th className="p-4">Email</th>
+                        <th className="p-4">Creado el</th>
+                        <th className="p-4">Último Acceso</th>
+                        <th className="p-4 text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {specialists.map((spec) => (
+                        <tr key={spec.id} className="hover:bg-slate-50/50 transition">
+                          <td className="p-4 font-semibold text-slate-700">{spec.email}</td>
+                          <td className="p-4 text-slate-500">
+                            {spec.created_at ? new Date(spec.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                          </td>
+                          <td className="p-4 text-slate-500">
+                            {spec.last_sign_in_at ? new Date(spec.last_sign_in_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Nunca'}
+                          </td>
+                          <td className="p-4 text-right">
+                            {editingSpecId === spec.id ? (
+                              <div className="flex flex-col md:flex-row gap-2 justify-end items-center">
+                                <div className="relative w-full md:w-48">
+                                  <input
+                                    type={showNewPassword ? 'text' : 'password'}
+                                    value={newSpecPassword}
+                                    onChange={(e) => setNewSpecPassword(e.target.value)}
+                                    placeholder="Nueva contraseña"
+                                    required
+                                    minLength={6}
+                                    className="w-full p-2 pr-8 border border-slate-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-cyan-500"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                  >
+                                    {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                  </button>
+                                </div>
+                                <div className="flex gap-1.5 w-full md:w-auto justify-end">
+                                  <button
+                                    onClick={() => handleUpdatePassword(spec.id)}
+                                    disabled={updatingPassword || newSpecPassword.length < 6}
+                                    className="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition shadow-sm disabled:opacity-50"
+                                    title="Guardar contraseña"
+                                  >
+                                    {updatingPassword ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setEditingSpecId(null);
+                                      setNewSpecPassword('');
+                                    }}
+                                    className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl transition"
+                                    title="Cancelar"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex gap-2 justify-end">
+                                <button
+                                  onClick={() => {
+                                    setEditingSpecId(spec.id);
+                                    setNewSpecPassword('');
+                                    setShowNewPassword(false);
+                                  }}
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl border border-slate-200 text-xs font-semibold transition"
+                                >
+                                  <Key className="w-3.5 h-3.5 text-cyan-600" />
+                                  <span>Contraseña</span>
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteSpecialist(spec.id, spec.email)}
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl border border-rose-100 text-xs font-semibold transition"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                                  <span>Eliminar</span>
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </section>
         </div>
 
